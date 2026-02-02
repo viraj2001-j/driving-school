@@ -14,7 +14,6 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [hasLicense, setHasLicense] = useState(false);
-  const [activeSection, setActiveSection] = useState("personal");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -66,400 +65,397 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] p-4 md:p-8">
-      {/* Horological Grid Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_99%,#E8E3D9_99%),linear-gradient(0deg,transparent_99%,#E8E3D9_99%)] bg-[size:50px_50px]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(173,139,106,0.05)_0%,transparent_50%),radial-gradient(circle_at_80%_70%,rgba(139,128,118,0.05)_0%,transparent_50%)]"></div>
-        <div className="absolute top-1/4 left-1/4 w-40 h-40 border border-[#AD8B6A]/10 rounded-full"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-60 h-60 border border-[#8B8076]/10 rounded-full"></div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md:p-10">
+      {/* Luxury Background Pattern */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(37,99,235,0.03)_0%,transparent_50%)]"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.02)_0%,transparent_50%)]"></div>
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto">
-        {/* Watch-like Top Indicator */}
-        <div className="mb-12">
-          <div className="flex flex-col items-center">
-            <div className="w-16 h-16 rounded-full border-2 border-[#AD8B6A] relative mb-4">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-full border border-[#8B8076]/30"></div>
+      <div className="relative max-w-6xl mx-auto">
+        {/* Luxury Header */}
+        <div className="mb-10 md:mb-16">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
+                  <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+                    Student Application
+                  </h1>
+                  <p className="text-slate-600 mt-2 font-light">Premium driving school enrollment</p>
+                </div>
               </div>
-              <div className="absolute top-1/2 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#AD8B6A]/30 to-transparent"></div>
-              <div className="absolute left-1/2 top-0 h-full w-px bg-gradient-to-b from-transparent via-[#AD8B6A]/30 to-transparent"></div>
             </div>
-            <h1 className="text-4xl font-serif tracking-wider text-[#2C2A28] mb-2">
-              Application Chronograph
-            </h1>
-            <p className="text-[#8B8076] text-sm tracking-[0.3em] uppercase">
-              Precision Registration System
-            </p>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
+                <div className="relative">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>
+                </div>
+                <span className="text-sm font-medium text-slate-700">System Active</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Watch Bezel Navigation */}
-          <div className="lg:w-48 flex-shrink-0">
-            <div className="sticky top-8 space-y-2">
-              {[
-                { id: "personal", label: "01 Personal", index: "I" },
-                { id: "vehicles", label: "02 Vehicles", index: "II" },
-                { id: "medical", label: "03 Medical", index: "III" },
-                { id: "payment", label: "04 Payment", index: "IV" },
-                { id: "notes", label: "05 Notes", index: "V" },
-                { id: "license", label: "06 License", index: "VI" }
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`w-full p-4 text-left transition-all duration-500 relative overflow-hidden group ${
-                    activeSection === item.id 
-                      ? 'bg-[#2C2A28] text-[#FAF8F5]' 
-                      : 'hover:bg-[#E8E3D9] text-[#8B8076]'
-                  }`}
-                >
-                  <div className="absolute left-0 top-0 h-full w-1 bg-[#AD8B6A] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-                  <div className="text-xs tracking-widest opacity-60 mb-1">{item.index}</div>
-                  <div className="font-medium">{item.label.split(' ')[1]}</div>
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full border border-[#AD8B6A] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </button>
-              ))}
+        {/* Luxury Form Container */}
+        <div className="relative">
+          {/* Decorative Top Accent */}
+          <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+          
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+            {/* Form Header with Luxury Accent */}
+            <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-sm">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-slate-900">Application Form</h2>
+                    <p className="text-sm text-slate-500">Complete all sections carefully</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-slate-700">Step 1/1</span>
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Main Form - Watch Dial Inspired */}
-          <div className="flex-1">
-            <div className="bg-white/90 backdrop-blur-sm border border-[#E8E3D9] min-h-[calc(100vh-200px)] relative">
-              {/* Watch Crown */}
-              <div className="absolute -right-6 top-1/2 -translate-y-1/2 w-12 h-12 border-2 border-[#AD8B6A] rounded-full flex items-center justify-center bg-white cursor-pointer hover:rotate-90 transition-transform duration-700">
-                <div className="w-1 h-4 bg-[#8B8076]"></div>
-              </div>
-
-              {/* Watch Subdials */}
-              <div className="absolute -left-8 top-8 w-16 h-16 border border-[#AD8B6A]/30 rounded-full p-1">
-                <div className="w-full h-full border border-[#AD8B6A]/20 rounded-full flex items-center justify-center">
-                  <span className="text-xs text-[#8B8076] tracking-widest">DATA</span>
-                </div>
-              </div>
-
-              <div className="absolute -left-8 bottom-8 w-12 h-12 border border-[#AD8B6A]/30 rounded-full p-1">
-                <div className="w-full h-full border border-[#AD8B6A]/20 rounded-full flex items-center justify-center">
-                  <span className="text-[8px] text-[#8B8076]">FORM</span>
-                </div>
-              </div>
-
-              <form onSubmit={onSubmit} className="p-8 md:p-12">
+            {/* Form Content */}
+            <form onSubmit={onSubmit} className="p-8 md:p-10">
+              <div className="space-y-12">
                 {/* Section 1: Personal Information */}
-                <div className={`space-y-8 mb-12 transition-all duration-700 ${activeSection === 'personal' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'}`}>
-                  <div className="flex items-center justify-between border-b border-[#E8E3D9] pb-4">
-                    <div>
-                      <div className="text-sm text-[#AD8B6A] tracking-widest mb-1">SECTION I</div>
-                      <h2 className="text-2xl font-serif text-[#2C2A28]">Personal Chronograph</h2>
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center">
+                        <span className="text-blue-700 font-bold">01</span>
+                      </div>
                     </div>
-                    <div className="text-xs text-[#8B8076] bg-[#FAF8F5] px-3 py-1 rounded-full border border-[#E8E3D9]">
-                      REQUIRED FIELDS
+                    <div>
+                      <h3 className="text-xl font-semibold text-slate-900">Personal Information</h3>
+                      <p className="text-slate-500">Basic student details</p>
                     </div>
                   </div>
 
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">FULL NAME</Label>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700 font-medium flex items-center gap-1">
+                        Full Name
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Input 
                         name="fullName" 
                         required 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 placeholder:text-[#C7C1B8]"
+                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300"
                         placeholder="Enter full legal name"
-                        onFocus={() => setActiveSection('personal')}
                       />
                     </div>
-                    
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">NIC NUMBER</Label>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700 font-medium flex items-center gap-1">
+                        NIC Number
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Input 
                         name="nic" 
                         required 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 placeholder:text-[#C7C1B8]"
-                        placeholder="National Identity Card"
-                        onFocus={() => setActiveSection('personal')}
+                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300"
+                        placeholder="NIC format: XXXXXXX-V"
                       />
                     </div>
-
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">DATE OF BIRTH</Label>
+                    <div className="space-y-3 md:col-span-2 lg:col-span-1">
+                      <Label className="text-slate-700 font-medium flex items-center gap-1">
+                        Date of Birth
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Input 
                         name="dob" 
                         type="date" 
                         required 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 [color-scheme:light]"
-                        onFocus={() => setActiveSection('personal')}
+                        className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300"
                       />
                     </div>
-
-                    <div className="md:col-span-3 relative">
-                      <div className="absolute -left-4 top-6 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">RESIDENTIAL ADDRESS</Label>
+                    <div className="space-y-3 md:col-span-3">
+                      <Label className="text-slate-700 font-medium flex items-center gap-1">
+                        Address
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Textarea 
                         name="address" 
                         required 
-                        className="bg-transparent border border-[#E8E3D9] rounded-lg px-4 py-3 text-[#2C2A28] focus:border-[#AD8B6A] focus:ring-0 transition-all duration-500 min-h-[120px] placeholder:text-[#C7C1B8]"
+                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 min-h-[100px] rounded-xl transition-all duration-300"
                         placeholder="Complete residential address"
-                        onFocus={() => setActiveSection('personal')}
                       />
                     </div>
-
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">EMAIL</Label>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700 font-medium">Email Address</Label>
                       <Input 
                         name="email" 
                         type="email" 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 placeholder:text-[#C7C1B8]"
-                        placeholder="contact@domain.com"
-                        onFocus={() => setActiveSection('personal')}
+                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300"
+                        placeholder="personal@email.com"
                       />
                     </div>
-
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">PRIMARY PHONE</Label>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700 font-medium flex items-center gap-1">
+                        Primary Phone
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Input 
                         name="phone1" 
                         required 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 placeholder:text-[#C7C1B8]"
-                        placeholder="+94 XXX XXX XXX"
-                        onFocus={() => setActiveSection('personal')}
+                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300"
+                        placeholder="+94 XX XXX XXXX"
                       />
                     </div>
-
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">SECONDARY PHONE</Label>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700 font-medium">Secondary Phone</Label>
                       <Input 
                         name="phone2" 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 placeholder:text-[#C7C1B8]"
-                        placeholder="Optional"
-                        onFocus={() => setActiveSection('personal')}
+                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300"
+                        placeholder="Optional alternative number"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Section 2: Vehicle Classes */}
-                <div className={`space-y-8 mb-12 transition-all duration-700 ${activeSection === 'vehicles' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'}`}>
-                  <div className="flex items-center justify-between border-b border-[#E8E3D9] pb-4">
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 flex items-center justify-center">
+                        <span className="text-purple-700 font-bold">02</span>
+                      </div>
+                    </div>
                     <div>
-                      <div className="text-sm text-[#AD8B6A] tracking-widest mb-1">SECTION II</div>
-                      <h2 className="text-2xl font-serif text-[#2C2A28]">Vehicle Class Selection</h2>
+                      <h3 className="text-xl font-semibold text-slate-900">Vehicle Classes</h3>
+                      <p className="text-slate-500">Select desired license categories</p>
                     </div>
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {vehicleClasses.map((v, index) => (
-                      <label 
-                        key={v.id} 
-                        className="group relative"
-                        onClick={() => setActiveSection('vehicles')}
-                      >
-                        <input 
-                          type="checkbox" 
-                          name={`app_vc_${v.id}`}
-                          className="peer sr-only"
-                        />
-                        <div className="p-4 border border-[#E8E3D9] rounded-lg bg-white hover:border-[#AD8B6A]/50 transition-all duration-500 cursor-pointer peer-checked:border-[#AD8B6A] peer-checked:bg-[#FAF8F5]">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-[#2C2A28] font-medium">{v.name}</span>
-                            <div className="w-6 h-6 border border-[#E8E3D9] rounded flex items-center justify-center group-hover:border-[#AD8B6A] transition-colors duration-300 peer-checked:bg-[#AD8B6A] peer-checked:border-[#AD8B6A]">
-                              <svg className="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
+                    {vehicleClasses.map((v) => (
+                      <label key={v.id} className="group relative">
+                        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-purple-600/5 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div className="relative flex items-center gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-purple-300 hover:shadow-md transition-all duration-300 cursor-pointer">
+                          <div className="relative">
+                            <input 
+                              type="checkbox" 
+                              name={`app_vc_${v.id}`}
+                              className="w-5 h-5 rounded-lg border-slate-300 text-purple-600 focus:ring-2 focus:ring-purple-500/40 focus:ring-offset-2 cursor-pointer"
+                            />
                           </div>
-                          <div className="text-xs text-[#8B8076] tracking-widest">Class {v.code}</div>
-                          <div className="absolute top-4 left-4 text-xs text-[#AD8B6A] font-mono">{(index + 1).toString().padStart(2, '0')}</div>
+                          <div>
+                            <span className="text-slate-900 font-medium group-hover:text-purple-700 transition-colors">{v.name}</span>
+                            <div className="text-sm text-slate-500 mt-1">Class {v.code}</div>
+                          </div>
                         </div>
                       </label>
                     ))}
                   </div>
                 </div>
 
-                {/* Section 3: Medical */}
-                <div className={`space-y-8 mb-12 transition-all duration-700 ${activeSection === 'medical' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'}`}>
-                  <div className="flex items-center justify-between border-b border-[#E8E3D9] pb-4">
-                    <div>
-                      <div className="text-sm text-[#AD8B6A] tracking-widest mb-1">SECTION III</div>
-                      <h2 className="text-2xl font-serif text-[#2C2A28]">Medical Examination</h2>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">EXAMINATION DATE</Label>
-                      <Input 
-                        name="medicalDate" 
-                        type="date" 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 [color-scheme:light]"
-                        onFocus={() => setActiveSection('medical')}
-                      />
-                    </div>
-
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">EXAMINATION TIME</Label>
-                      <Input 
-                        name="medicalTime" 
-                        type="time" 
-                        className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 [color-scheme:light]"
-                        onFocus={() => setActiveSection('medical')}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="p-6 border border-[#E8E3D9] bg-[#FAF8F5] rounded-lg">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 border border-[#AD8B6A] rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <div className="w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
+                {/* Section 3: Medical & Payment */}
+                <div className="grid gap-8 md:grid-cols-2">
+                  {/* Medical Section */}
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 flex items-center justify-center">
+                          <span className="text-emerald-700 font-bold">03</span>
+                        </div>
                       </div>
                       <div>
-                        <div className="text-sm text-[#8B8076] font-medium mb-1">STATUS INDICATOR</div>
-                        <p className="text-[#2C2A28]">
-                          When medical date is selected, application status becomes <span className="text-[#AD8B6A] font-medium">BOOKED</span>. 
-                          Otherwise, status remains <span className="text-[#8B8076] font-medium">PENDING</span>.
+                        <h3 className="text-xl font-semibold text-slate-900">Medical Details</h3>
+                        <p className="text-slate-500">Examination scheduling</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label className="text-slate-700 font-medium">Medical Date</Label>
+                        <Input 
+                          name="medicalDate" 
+                          type="date" 
+                          className="bg-white border-slate-300 text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-12 rounded-xl transition-all duration-300"
+                        />
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-slate-700 font-medium">Medical Time</Label>
+                        <Input 
+                          name="medicalTime" 
+                          type="time" 
+                          className="bg-white border-slate-300 text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-12 rounded-xl transition-all duration-300"
+                        />
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl border border-emerald-200">
+                        <div className="flex items-start gap-3">
+                          <div className="w-5 h-5 rounded-full bg-emerald-100 border border-emerald-300 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <p className="text-sm text-emerald-800">
+                            Selecting a medical date changes application status to <span className="font-semibold text-amber-600">BOOKED</span>. Otherwise remains <span className="font-semibold text-blue-600">PENDING</span>.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Section */}
+                  <div className="space-y-8">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 flex items-center justify-center">
+                          <span className="text-amber-700 font-bold">04</span>
+                        </div>
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-900">Payment Details</h3>
+                        <p className="text-slate-500">Financial information</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div className="space-y-3">
+                        <Label className="text-slate-700 font-medium flex items-center gap-1">
+                          Total Fee
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">LKR</span>
+                          <Input 
+                            name="totalFee" 
+                            type="number" 
+                            required 
+                            className="bg-white border-slate-300 text-slate-900 pl-16 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 h-12 rounded-xl transition-all duration-300"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <Label className="text-slate-700 font-medium flex items-center gap-1">
+                          Advance Fee
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <div className="relative">
+                          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-medium">LKR</span>
+                          <Input 
+                            name="advanceFee" 
+                            type="number" 
+                            required 
+                            className="bg-white border-slate-300 text-slate-900 pl-16 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 h-12 rounded-xl transition-all duration-300"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4 bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-xl border border-amber-200">
+                        <p className="text-sm text-amber-800">
+                          Please ensure payment details are accurately recorded. All financial transactions undergo verification during processing.
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Section 4: Payment */}
-                <div className={`space-y-8 mb-12 transition-all duration-700 ${activeSection === 'payment' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'}`}>
-                  <div className="flex items-center justify-between border-b border-[#E8E3D9] pb-4">
-                    <div>
-                      <div className="text-sm text-[#AD8B6A] tracking-widest mb-1">SECTION IV</div>
-                      <h2 className="text-2xl font-serif text-[#2C2A28]">Financial Configuration</h2>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">TOTAL FEE</Label>
-                      <div className="relative">
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[#AD8B6A]">Rs.</span>
-                        <Input 
-                          name="totalFee" 
-                          type="number" 
-                          required 
-                          className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none pl-8 pr-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500"
-                          onFocus={() => setActiveSection('payment')}
-                        />
+                {/* Section 4: Notes */}
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex items-center justify-center">
+                        <span className="text-slate-700 font-bold">05</span>
                       </div>
                     </div>
-
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">ADVANCE FEE</Label>
-                      <div className="relative">
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 text-[#AD8B6A]">Rs.</span>
-                        <Input 
-                          name="advanceFee" 
-                          type="number" 
-                          required 
-                          className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none pl-8 pr-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500"
-                          onFocus={() => setActiveSection('payment')}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 5: Notes */}
-                <div className={`space-y-8 mb-12 transition-all duration-700 ${activeSection === 'notes' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'}`}>
-                  <div className="flex items-center justify-between border-b border-[#E8E3D9] pb-4">
                     <div>
-                      <div className="text-sm text-[#AD8B6A] tracking-widest mb-1">SECTION V</div>
-                      <h2 className="text-2xl font-serif text-[#2C2A28]">Additional Remarks</h2>
+                      <h3 className="text-xl font-semibold text-slate-900">Additional Notes</h3>
+                      <p className="text-slate-500">Optional remarks or special instructions</p>
                     </div>
                   </div>
 
-                  <div className="relative">
-                    <div className="absolute -left-4 top-6 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                    <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">NOTES & REMARKS</Label>
+                  <div className="space-y-3">
                     <Textarea 
                       name="notes" 
-                      className="bg-transparent border border-[#E8E3D9] rounded-lg px-4 py-3 text-[#2C2A28] focus:border-[#AD8B6A] focus:ring-0 transition-all duration-500 min-h-[150px] placeholder:text-[#C7C1B8]"
-                      placeholder="Enter any additional notes, special requirements, or remarks..."
-                      onFocus={() => setActiveSection('notes')}
+                      className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-400/20 min-h-[120px] rounded-xl transition-all duration-300"
+                      placeholder="Enter any additional notes, special requirements, or instructions..."
                     />
                   </div>
                 </div>
 
-                {/* Section 6: License */}
-                <div className={`space-y-8 mb-12 transition-all duration-700 ${activeSection === 'license' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none absolute'}`}>
-                  <div className="flex items-center justify-between border-b border-[#E8E3D9] pb-4">
+                {/* Section 5: Existing License */}
+                <div className="space-y-8">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-50 to-violet-100 border border-violet-200 flex items-center justify-center">
+                        <span className="text-violet-700 font-bold">06</span>
+                      </div>
+                    </div>
                     <div>
-                      <div className="text-sm text-[#AD8B6A] tracking-widest mb-1">SECTION VI</div>
-                      <h2 className="text-2xl font-serif text-[#2C2A28]">Existing License Data</h2>
+                      <h3 className="text-xl font-semibold text-slate-900">Existing License</h3>
+                      <p className="text-slate-500">Current license information (if applicable)</p>
                     </div>
                   </div>
 
                   <div className="space-y-6">
-                    <div className="relative">
-                      <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                      <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">EXISTING LICENSE</Label>
-                      <select
-                        name="hasExistingLicense"
-                        className="w-full md:w-64 bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 cursor-pointer"
-                        defaultValue="no"
-                        onChange={(e) => {
-                          setHasLicense(e.target.value === "yes");
-                          setActiveSection('license');
-                        }}
-                        onClick={() => setActiveSection('license')}
-                      >
-                        <option value="no" className="bg-white">No existing license</option>
-                        <option value="yes" className="bg-white">Has existing license</option>
-                      </select>
+                    <div className="space-y-3">
+                      <Label className="text-slate-700 font-medium">Already possess a Driving License?</Label>
+                      <div className="w-full md:w-80">
+                        <select
+                          name="hasExistingLicense"
+                          className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-3 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition-all duration-300 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236B7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_1rem_center] bg-[length:1.5em_1.5em]"
+                          defaultValue="no"
+                          onChange={(e) => setHasLicense(e.target.value === "yes")}
+                        >
+                          <option value="no" className="bg-white text-slate-900">No, applying for new license</option>
+                          <option value="yes" className="bg-white text-slate-900">Yes, have existing license</option>
+                        </select>
+                      </div>
                     </div>
 
                     {hasLicense && (
-                      <div className="space-y-8 p-6 border border-[#E8E3D9] rounded-lg bg-[#FAF8F5] animate-in fade-in duration-500">
+                      <div className="p-8 bg-gradient-to-br from-violet-50/50 to-white rounded-2xl border border-violet-100 space-y-8 animate-in fade-in duration-500 shadow-sm">
                         <div className="grid gap-6 md:grid-cols-2">
-                          <div className="relative">
-                            <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                            <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">LICENSE NUMBER</Label>
+                          <div className="space-y-3">
+                            <Label className="text-slate-700 font-medium">License Number</Label>
                             <Input 
                               name="licenseNumber" 
-                              className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 placeholder:text-[#C7C1B8]"
-                              placeholder="Existing license number"
-                              onFocus={() => setActiveSection('license')}
+                              className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 h-12 rounded-xl transition-all duration-300"
+                              placeholder="Enter license number"
                             />
                           </div>
-                          
-                          <div className="relative">
-                            <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-2 h-2 bg-[#AD8B6A] rounded-full"></div>
-                            <Label className="block text-sm text-[#8B8076] mb-2 font-medium tracking-wider">ISSUE DATE</Label>
+                          <div className="space-y-3">
+                            <Label className="text-slate-700 font-medium">Issued Date</Label>
                             <Input 
                               name="licenseIssuedDate" 
                               type="date" 
-                              className="bg-transparent border-0 border-b border-[#E8E3D9] rounded-none px-0 py-3 text-[#2C2A28] focus:border-b-[#AD8B6A] focus:ring-0 transition-all duration-500 [color-scheme:light]"
-                              onFocus={() => setActiveSection('license')}
+                              className="bg-white border-slate-300 text-slate-900 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 h-12 rounded-xl transition-all duration-300"
                             />
                           </div>
                         </div>
 
                         <div className="space-y-4">
-                          <Label className="block text-sm text-[#8B8076] font-medium tracking-wider">EXISTING VEHICLE CLASSES</Label>
+                          <Label className="text-slate-700 font-medium">Current License Classes</Label>
                           <div className="grid gap-3 md:grid-cols-2">
                             {vehicleClasses.map((v) => (
-                              <label key={v.id} className="flex items-center gap-3 group cursor-pointer">
+                              <label key={v.id} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg hover:border-violet-300 hover:shadow-sm transition-all duration-300 cursor-pointer">
                                 <input 
                                   type="checkbox" 
                                   name={`lic_vc_${v.id}`}
-                                  className="w-4 h-4 border border-[#E8E3D9] rounded bg-white checked:bg-[#AD8B6A] checked:border-[#AD8B6A] focus:ring-[#AD8B6A] focus:ring-2 focus:ring-offset-2 focus:ring-offset-white cursor-pointer"
+                                  className="w-4 h-4 rounded border-slate-300 text-violet-600 focus:ring-2 focus:ring-violet-500/40"
                                 />
-                                <span className="text-[#2C2A28] group-hover:text-[#AD8B6A] transition-colors duration-300">{v.name}</span>
+                                <span className="text-slate-700">{v.name}</span>
                               </label>
                             ))}
                           </div>
@@ -469,55 +465,61 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
                   </div>
                 </div>
 
-                {/* Submit Button - Watch Chronograph Inspired */}
-                <div className="mt-12 pt-8 border-t border-[#E8E3D9]">
+                {/* Submit Section */}
+                <div className="pt-8 border-t border-slate-200">
                   <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-                    <div className="text-sm text-[#8B8076] tracking-widest">
-                      All measurements verified | Precision system
+                    <div className="text-sm text-slate-500">
+                      Fields marked with <span className="text-red-500">*</span> are mandatory
                     </div>
-                    
                     <Button
                       disabled={loading}
                       type="submit"
-                      className="relative overflow-hidden group px-12 py-6 rounded-none border-2 border-[#2C2A28] bg-white text-[#2C2A28] hover:bg-[#2C2A28] hover:text-[#FAF8F5] transition-all duration-700 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 min-w-[280px] font-medium tracking-widest"
+                      className="relative overflow-hidden group bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-12 py-7 rounded-2xl transition-all duration-500 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed min-w-[240px] transform hover:-translate-y-0.5"
                     >
-                      <div className="absolute inset-0 bg-[#2C2A28] transform -translate-x-full group-hover:translate-x-0 transition-transform duration-700"></div>
-                      <span className="relative flex items-center justify-center gap-3">
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                      <span className="relative flex items-center gap-3 text-base">
                         {loading ? (
                           <>
-                            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                            PROCESSING CHRONOGRAPH
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Processing Submission...
                           </>
                         ) : (
                           <>
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
-                            CERTIFY APPLICATION
+                            Submit Application
                           </>
                         )}
                       </span>
                     </Button>
                   </div>
                 </div>
-              </form>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Indicator */}
-        <div className="mt-12 pt-8 border-t border-[#E8E3D9]">
-          <div className="flex items-center justify-between text-sm text-[#8B8076]">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border border-[#AD8B6A]/30 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-[#AD8B6A] rounded-full animate-pulse"></div>
               </div>
-              <span>System calibrated for precision</span>
-            </div>
-            <div className="tracking-widest">
-              {new Date().getFullYear()} | CHRONOGRAPH SYSTEM
+            </form>
+
+            {/* Luxury Footer */}
+            <div className="px-8 py-6 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    <span className="text-sm text-slate-600 font-medium">Ready for submission</span>
+                  </div>
+                  <div className="hidden md:block w-px h-4 bg-slate-300"></div>
+                  <div className="text-sm text-slate-500">
+                    All information is secured & encrypted
+                  </div>
+                </div>
+                <div className="text-sm text-slate-500 font-light">
+                  © {new Date().getFullYear()} Elite Driving Academy • Premium Services
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Decorative Bottom Accent */}
+          <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
         </div>
       </div>
     </div>
