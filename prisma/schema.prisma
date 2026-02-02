@@ -175,6 +175,8 @@ model StudentApplication {
 
   notes            String?
  
+  writtenExams    WrittenExam[]
+
  medicalDate     DateTime?
 medicalTime     DateTime?
   medicalStatus   String   @default("PENDING")
@@ -183,6 +185,8 @@ medicalTime     DateTime?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  drivingExams DrivingExam[]
 }
 
 model ApplicationVehicleClass {
@@ -191,7 +195,7 @@ model ApplicationVehicleClass {
   applicationId String
   vehicleClassId Int
 
-  application   StudentApplication @relation(fields: [applicationId], references: [id])
+  application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   vehicleClass  VehicleClass       @relation(fields: [vehicleClassId], references: [id])
 }
 
@@ -214,7 +218,7 @@ model ExistingLicense {
   issuedDate     DateTime?
   vehicleClasses ExistingLicenseVehicleClass[]
 
-  application    StudentApplication @relation(fields: [applicationId], references: [id])
+  application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
 model ExistingLicenseVehicleClass {
@@ -223,9 +227,10 @@ model ExistingLicenseVehicleClass {
   licenseId      Int
   vehicleClassId Int
 
-  license        ExistingLicense @relation(fields: [licenseId], references: [id])
+  license        ExistingLicense @relation(fields: [licenseId], references: [id], onDelete: Cascade)
   vehicleClass   VehicleClass    @relation(fields: [vehicleClassId], references: [id])
 }
+
 
 enum PaymentStatus {
   PENDING
@@ -239,8 +244,53 @@ model PaymentInfo {
 
   totalFee        Int
   advanceFee      Int
-  status          String   @default("PENDING")
+  status String @default("PENDING")
   paidDate        DateTime? // optional if needed later
 
-  application     StudentApplication @relation(fields: [applicationId], references: [id])
+
+  application     StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model User1 {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+enum ExamResult {
+  PASS
+  FAIL
+  ABSENT
+}
+
+model WrittenExam {
+  id              Int      @id @default(autoincrement())
+
+  applicationId   String
+  barCode         String
+  examDate        DateTime
+  result          ExamResult
+  attemptNo       Int
+
+  createdAt       DateTime @default(now())
+
+  notes           String?  
+
+  application     StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, attemptNo])
+}
+
+model DrivingExam {
+  id             Int      @id @default(autoincrement())
+  applicationId  String   @unique
+
+  trainedDates   String   @db.Text // stored as a single string
+  examResult     String   @db.Text
+  notes          String?  @db.Text
+
+  createdAt      DateTime @default(now())
+
+  application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }

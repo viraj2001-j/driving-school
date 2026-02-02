@@ -3,6 +3,7 @@ import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import NewApplicationForm from "./NewApplicationForm";
 
+
 export default async function NewApplicationPage() {
   const session = await getSession();
 
@@ -20,4 +21,5 @@ export default async function NewApplicationPage() {
   });
 
   return <NewApplicationForm vehicleClasses={vehicleClasses} />;
+  
 }
