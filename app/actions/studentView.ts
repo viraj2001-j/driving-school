@@ -22,6 +22,29 @@ export async function suggestStudents(query: string) {
 
 
 // Get full info of one student
+// export async function getStudentDetails(id: string) {
+//   return await prisma.studentApplication.findUnique({
+//     where: { id },
+//     include: {
+//       vehicleClasses: { include: { vehicleClass: true } },
+//       existingLicense: {
+//         include: { vehicleClasses: { include: { vehicleClass: true } } },
+//       },
+//       paymentInfo: true,
+//             writtenExams: {
+//         orderBy: { attemptNo: 'asc' } // Keep attempts in order
+//       },
+//       drivingExamResults: {
+//   include: { vehicleClass: true },
+//   orderBy: { vehicleClassId: "asc" }
+// }
+
+//     },
+//   });
+// }
+
+
+// Get full info of one student
 export async function getStudentDetails(id: string) {
   return await prisma.studentApplication.findUnique({
     where: { id },
@@ -31,10 +54,25 @@ export async function getStudentDetails(id: string) {
         include: { vehicleClasses: { include: { vehicleClass: true } } },
       },
       paymentInfo: true,
-            writtenExams: {
-        orderBy: { attemptNo: 'asc' } // Keep attempts in order
+
+      writtenExams: {
+        orderBy: { attemptNo: "asc" },
       },
-      drivingExams: true,
+
+      drivingExamResults: {
+        include: { vehicleClass: true },
+        orderBy: { vehicleClassId: "asc" },
+      },
+
+      // ✅ NEW
+      examAttempts: {
+        include: { vehicleClass: true }, // so you can show vehicle name
+        orderBy: [
+          { examType: "asc" },
+          { vehicleClassId: "asc" },
+          { attemptNo: "asc" },
+        ],
+      },
     },
   });
 }
@@ -82,3 +120,16 @@ export async function updateStudent(id: string, data: {
 // }
 
 // Example of what your fetch should look like
+
+export async function getAllVehicleClasses() {
+  try {
+    const classes = await prisma.vehicleClass.findMany({
+      orderBy: { code: 'asc' }
+    });
+    return classes;
+  } catch (error) {
+    console.error("Failed to fetch vehicle classes:", error);
+    return [];
+  }
+}
+

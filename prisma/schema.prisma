@@ -23,7 +23,7 @@ model User {
   name      String
   username  String   @unique
   password  String
-  role      Role     @default(RECEPTION)
+  role      Role     @default(ADMIN)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -157,6 +157,51 @@ model User {
 // }
 
 
+// model StudentApplication {
+//   id            String   @id @default(cuid())
+//   referenceNo   String   @unique
+//   fullName      String
+//   nic           String
+//   address       String
+//   email         String?
+//   phone1        String
+//   phone2        String?
+//   dob           DateTime
+//   age           Int
+
+//   canDriveVehicles Boolean @default(false)
+
+//   // Relations
+//   vehicleClasses   ApplicationVehicleClass[]
+//   existingLicense  ExistingLicense?
+
+//   notes            String?
+ 
+//   writtenExams    WrittenExam[]
+
+//  medicalDate     DateTime?
+// medicalTime     DateTime?
+//   medicalStatus   String   @default("PENDING")
+  
+//  paymentInfo     PaymentInfo?
+
+//   createdAt       DateTime @default(now())
+//   updatedAt       DateTime @updatedAt
+
+//   // drivingExams DrivingExam[]
+
+//   paymentRecords PaymentRecord[]
+
+//   drivingExamResults DrivingExamResult[]
+
+  
+
+ 
+
+//   examAttempts ExamAttempt[]
+// }
+
+
 model StudentApplication {
   id            String   @id @default(cuid())
   referenceNo   String   @unique
@@ -169,6 +214,8 @@ model StudentApplication {
   dob           DateTime
   age           Int
 
+  canDriveVehicles Boolean @default(false)
+
   // Relations
   vehicleClasses   ApplicationVehicleClass[]
   existingLicense  ExistingLicense?
@@ -177,17 +224,34 @@ model StudentApplication {
  
   writtenExams    WrittenExam[]
 
- medicalDate     DateTime?
-medicalTime     DateTime?
+  medicalDate     DateTime?
+  medicalTime     DateTime?
   medicalStatus   String   @default("PENDING")
   
- paymentInfo     PaymentInfo?
+  paymentInfo     PaymentInfo?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  drivingExams DrivingExam[]
+  paymentRecords      PaymentRecord[]
+  drivingExamResults  DrivingExamResult[]
+  examAttempts        ExamAttempt[]
+
+  // 👇 NEW
+  birthdayWishLogs    BirthdayWishLog[]
 }
+
+model BirthdayWishLog {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  year          Int
+  sentAt        DateTime @default(now())
+
+  application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, year]) // one wish per student per year
+}
+
 
 model ApplicationVehicleClass {
   id        Int                 @id @default(autoincrement())
@@ -208,6 +272,12 @@ model VehicleClass {
 
   applications ApplicationVehicleClass[]
   existingLicenses ExistingLicenseVehicleClass[]
+
+  drivingExamResults DrivingExamResult[]
+
+
+
+  examAttempts ExamAttempt[]
 }
 
 model ExistingLicense {
@@ -264,6 +334,52 @@ enum ExamResult {
   ABSENT
 }
 
+// model WrittenExam {
+//   id              Int      @id @default(autoincrement())
+
+//   applicationId   String
+//   barCode         String
+//   examDate        DateTime
+//   result          ExamResult
+//   attemptNo       Int
+
+//   createdAt       DateTime @default(now())
+
+//   notes           String?  
+
+//   application     StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+//   @@unique([applicationId, attemptNo])
+// }
+
+
+
+enum DrivingExamResultStatus {
+  PASS
+  FAIL
+  ABSENT
+}
+
+// model DrivingExamResult {
+//   id             Int      @id @default(autoincrement())
+//   applicationId  String
+//   vehicleClassId Int
+//   result         DrivingExamResultStatus
+//   notes          String?
+//   examDate       DateTime?
+//   trainedDates   String   @db.Text
+
+//   createdAt      DateTime @default(now())
+
+//   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+//   vehicleClass   VehicleClass       @relation(fields: [vehicleClassId], references: [id], onDelete: Cascade)
+
+//   @@unique([applicationId, vehicleClassId])
+// }
+
+
+
+
 model WrittenExam {
   id              Int      @id @default(autoincrement())
 
@@ -274,23 +390,74 @@ model WrittenExam {
   attemptNo       Int
 
   createdAt       DateTime @default(now())
+  notes           String?
 
-  notes           String?  
+  // NEW: final pass summary (do NOT overwrite result)
+  passAttemptNo   Int?
+  passDate        DateTime?
+  passWithText    String?
 
   application     StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@unique([applicationId, attemptNo])
 }
 
-model DrivingExam {
+model DrivingExamResult {
   id             Int      @id @default(autoincrement())
-  applicationId  String   @unique
+  applicationId  String
+  vehicleClassId Int
+  result         DrivingExamResultStatus
+  notes          String?
+  examDate       DateTime?
+  trainedDates   String   @db.Text
 
-  trainedDates   String   @db.Text // stored as a single string
-  examResult     String   @db.Text
-  notes          String?  @db.Text
+  createdAt      DateTime @default(now())
+
+  // NEW: final pass summary (do NOT overwrite result)
+  passAttemptNo  Int?
+  passDate       DateTime?
+  passWithText   String?
+
+  application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  vehicleClass   VehicleClass       @relation(fields: [vehicleClassId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, vehicleClassId])
+}
+
+
+
+
+model PaymentRecord {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  amount        Int
+  paidDate      DateTime @default(now())
+
+  application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+   @@index([applicationId])
+}
+
+
+
+
+
+model ExamAttempt {
+  id             Int      @id @default(autoincrement())
+  applicationId  String
+
+  examType       String
+  vehicleClassId Int?
+
+  attemptNo      Int
+  examDate       DateTime
+  examTime       DateTime?
+  notes          String?
+
+  result         DrivingExamResultStatus @default(ABSENT)
 
   createdAt      DateTime @default(now())
 
   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  vehicleClass   VehicleClass?      @relation(fields: [vehicleClassId], references: [id])
 }

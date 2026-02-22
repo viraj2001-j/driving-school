@@ -51,6 +51,8 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
       licenseNumber: String(form.get("licenseNumber") || ""),
       licenseIssuedDate: String(form.get("licenseIssuedDate") || ""),
       licenseClassIds,
+      canDriveVehicles: form.get("canDriveVehicles") === "on",
+
     });
 
     setLoading(false);
@@ -394,6 +396,22 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
                   </div>
                 </div>
 
+                <div className="space-y-3">
+  <Label className="text-slate-700 font-medium">Can drive vehicles</Label>
+
+  <label className="flex items-center gap-3 p-4 bg-white border border-slate-200 rounded-xl hover:border-blue-300 hover:shadow-sm transition-all duration-300 cursor-pointer">
+    <input
+      type="checkbox"
+      name="canDriveVehicles"
+      className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/40"
+    />
+    <span className="text-slate-700">
+      Student can currently drive (has practical driving ability)
+    </span>
+  </label>
+</div>
+
+
                 {/* Section 5: Existing License */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-4">
@@ -464,6 +482,8 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
                     )}
                   </div>
                 </div>
+
+
 
                 {/* Submit Section */}
                 <div className="pt-8 border-t border-slate-200">

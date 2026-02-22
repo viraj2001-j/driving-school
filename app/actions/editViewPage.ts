@@ -31,6 +31,8 @@ export async function updateStudentFull(id: string, data: any) {
         },
       });
 
+
+
       // 2. Existing License & its Vehicle Classes
       if (data.hasExistingLicense) {
         const license = await tx.existingLicense.upsert({
@@ -76,20 +78,39 @@ const validExams = data.writtenExams?.filter((exam: any) => exam.examDate && exa
       }
 
       // 4. Driving Exam
-      await tx.drivingExam.upsert({
-        where: { applicationId: id },
-        create: {
-          applicationId: id,
-          trainedDates: data.drivingExam.trainedDates,
-          examResult: data.drivingExam.examResult,
-          notes: data.drivingExam.notes,
-        },
-        update: {
-          trainedDates: data.drivingExam.trainedDates,
-          examResult: data.drivingExam.examResult,
-          notes: data.drivingExam.notes,
-        },
-      });
+      // await tx.drivingExam.upsert({
+      //   where: { applicationId: id },
+      //   create: {
+      //     applicationId: id,
+      //     trainedDates: data.drivingExam.trainedDates,
+      //     examDate: data.drivingExam.examDate ? new Date(data.drivingExam.examDate) : null,
+      //     // examResult: data.drivingExam.examResult,
+          
+      //     notes: data.drivingExam.notes,
+      //   },
+      //   update: {
+      //     trainedDates: data.drivingExam.trainedDates,
+      //     // examResult: data.drivingExam.examResult,
+      //     examDate: data.drivingExam.examDate ? new Date(data.drivingExam.examDate) : null,
+      //     notes: data.drivingExam.notes,
+      //   },
+      // });
+
+      // 4. Driving Exam Results (per vehicle)
+await tx.drivingExamResult.deleteMany({ where: { applicationId: id } });
+
+if (data.drivingExamResults?.length > 0) {
+  await tx.drivingExamResult.createMany({
+    data: data.drivingExamResults.map((r: any) => ({
+      applicationId: id,
+      vehicleClassId: parseInt(r.vehicleClassId),
+      trainedDates: r.trainedDates || "",
+      examDate: r.examDate ? new Date(r.examDate) : null,
+      result: r.result, 
+      notes: r.notes || "",
+    })),
+  });
+}
 
       // 5. Payment Info
       await tx.paymentInfo.upsert({
@@ -116,15 +137,5 @@ const validExams = data.writtenExams?.filter((exam: any) => exam.examDate && exa
   }
 }
 
-export async function getAllVehicleClasses() {
-  try {
-    const classes = await prisma.vehicleClass.findMany({
-      orderBy: { code: 'asc' }
-    });
-    return classes;
-  } catch (error) {
-    console.error("Failed to fetch vehicle classes:", error);
-    return [];
-  }
-}
 
+// @/app/actions/studentView.ts

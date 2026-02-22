@@ -140,6 +140,9 @@ const Sidebar = () => {
     { name: "Written Exam", href: "/forms/application/written-exam", icon: <FaClipboardList /> },
     { name: "Driving Exam", href: "/forms/application/driving-exam", icon: <FaCar /> },
     { name: "View Students", href: "/forms/view-students", icon: <FaAddressBook /> },
+        { name: "Payments", href: "/forms/payments", icon: <FaAddressBook /> },
+                { name: "Reshedule", href: "/forms/filter-exams", icon: <FaAddressBook /> },
+                { name: "View Users", href: "/forms/user", icon: <FaAddressBook /> },
   ];
 
   return (

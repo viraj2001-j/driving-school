@@ -313,10 +313,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getAllVehicleClasses } from "@/app/actions/viewStudents";
+import { getAllVehicleClasses } from "@/app/actions/studentView";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+
 
 type DeleteResult = { success: true } | { success: false; message: string };
 
@@ -328,6 +330,25 @@ export default function ViewStudentsPage() {
   const [formData, setFormData] = useState<any>(null);
   const [allClasses, setAllClasses] = useState<any[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const examAttempts: ExamAttemptRow[] = (selected?.examAttempts ?? []).map((a: any) => ({
+  ...a,
+  result: String(a.result ?? "ABSENT"),
+}));
+
+const writtenAttempts = examAttempts
+  .filter((a) => String(a.examType).toUpperCase() === "WRITTEN")
+  .sort((a, b) => a.attemptNo - b.attemptNo);
+
+const drivingAttempts = examAttempts
+  .filter((a) => String(a.examType).toUpperCase() === "DRIVING")
+  .filter((a) => a.vehicleClassId) // must have vehicle
+  .sort((a, b) => (a.vehicleClassId! - b.vehicleClassId!) || (a.attemptNo - b.attemptNo));
+
+// (Optional) show attempts until PASS
+const writtenUntilPass = takeUntilFirstPass(writtenAttempts);
+const drivingGrouped = groupByVehicleClass(drivingAttempts); // Map<vehicleClassId, attempts[]>
+
 
   // Search suggestions
   useEffect(() => {
@@ -368,6 +389,9 @@ export default function ViewStudentsPage() {
     if (!student) {
       toast.error("Student not found");
       return;
+
+      
+
     }
 
     setSelected(student);
@@ -398,6 +422,62 @@ export default function ViewStudentsPage() {
       }
     }
   };
+
+  
+  // ...............
+
+  type ExamAttemptRow = {
+  id: number;
+  examType: string;
+  vehicleClassId?: number | null;
+  attemptNo: number;
+  examDate: string | Date;
+  examTime?: string | Date | null;
+  notes?: string | null;
+  result: string;
+  vehicleClass?: { id: number; name: string } | null;
+};
+
+function toDateSafe(v?: string | Date | null) {
+  if (!v) return null;
+  const d = typeof v === "string" ? new Date(v) : v;
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// TAKE ATTEMPTS UNTIL FIRST PASS
+function takeUntilFirstPass(list: ExamAttemptRow[]) {
+  const sorted = [...list].sort((a, b) => a.attemptNo - b.attemptNo);
+  const output: ExamAttemptRow[] = [];
+
+  for (const a of sorted) {
+    output.push(a);
+    if (String(a.result) === "PASS") break;
+  }
+  return output;
+}
+
+// GROUP DRIVING ATTEMPTS BY VEHICLE CLASS
+function groupByVehicleClass(attempts: ExamAttemptRow[]) {
+  const map = new Map<number, ExamAttemptRow[]>();
+
+  for (const a of attempts) {
+    if (!a.vehicleClassId) continue;
+    if (!map.has(a.vehicleClassId)) map.set(a.vehicleClassId, []);
+    map.get(a.vehicleClassId)!.push(a);
+  }
+
+  // Filter each group until PASS
+  for (const key of map.keys()) {
+    map.set(key, takeUntilFirstPass(map.get(key)!));
+  }
+
+  return map;
+}
+
+
+
+    
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md:p-10">
@@ -547,8 +627,21 @@ export default function ViewStudentsPage() {
                                 : 'bg-amber-100 text-amber-800'
                             }`}>
                               {selected.medicalStatus}
+
+                              
                             </span>
+                            
                           </div>
+                          <span
+  className={`px-3 py-1 rounded-full text-sm font-medium ${
+    selected.canDriveVehicles
+      ? "bg-emerald-100 text-emerald-800"
+      : "bg-red-100 text-red-800"
+  }`}
+>
+  {selected.canDriveVehicles ? "✅ Can Drive" : "❌ Cannot Drive"}
+</span>
+
                         </div>
                         <div className="flex flex-wrap gap-4 text-sm text-slate-600">
                           <span className="flex items-center gap-1">
@@ -646,6 +739,14 @@ export default function ViewStudentsPage() {
                           )}
                         </div>
                       </div>
+
+                       <div className="space-y-2">
+                        <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">Email</Label>
+                        <div className="p-3 bg-slate-50 rounded-lg border border-slate-200 flex items-start gap-3">
+                          <MapPin className="w-4 h-4 text-slate-500 mt-0.5" />
+                          <span className="text-slate-900">{selected.email}</span>
+                        </div>
+                      </div>
                       
                       <div className="space-y-2">
                         <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">Address</Label>
@@ -735,6 +836,163 @@ export default function ViewStudentsPage() {
                       </div>
                     </div>
                   </div>
+
+                   {/* ✅ can drive */}
+
+
+                  {/* ✅ Exam Attempts */}
+<div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-200 flex items-center justify-center">
+      <FileText className="w-4 h-4 text-indigo-600" />
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900">Exam Attempts</h3>
+  </div>
+
+  {/* WRITTEN */}
+  <div className="mb-6">
+    <div className="flex items-center justify-between mb-3">
+      <h4 className="font-semibold text-slate-800">Written Attempts</h4>
+      <span className="text-xs text-slate-500">Showing until PASS</span>
+    </div>
+
+    {writtenUntilPass.length > 0 ? (
+      <div className="space-y-3">
+        {writtenUntilPass.map((a) => {
+          const d = toDateSafe(a.examDate);
+          const t = toDateSafe(a.examTime);
+          return (
+            <div key={a.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 bg-white border border-slate-300 rounded-lg text-sm font-medium">
+                    Attempt {a.attemptNo}
+                  </span>
+
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-bold ${
+                      a.result === "PASS"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : a.result === "FAIL"
+                        ? "bg-red-100 text-red-800"
+                        : "bg-slate-200 text-slate-700"
+                    }`}
+                  >
+                    {a.result}
+                  </span>
+                </div>
+
+                <div className="text-right">
+                  <div className="text-sm text-slate-700 font-medium">
+                    {d ? d.toLocaleDateString() : "No date"}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {t ? t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                  </div>
+                </div>
+              </div>
+
+              {a.notes && (
+                <div className="mt-3 text-sm text-slate-700 bg-white border border-slate-200 rounded-lg p-3">
+                  <span className="font-medium">Notes:</span> {a.notes}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-500 italic">
+        No written exam attempts yet
+      </div>
+    )}
+  </div>
+
+  {/* DRIVING */}
+  <div>
+    <div className="flex items-center justify-between mb-3">
+      <h4 className="font-semibold text-slate-800">Driving Attempts (Per Vehicle)</h4>
+      <span className="text-xs text-slate-500">Grouped + showing until PASS</span>
+    </div>
+
+    {drivingGrouped.size > 0 ? (
+      <div className="space-y-4">
+        {Array.from(drivingGrouped.entries()).map(([vehicleClassId, attempts]) => {
+          const vehicleName =
+            attempts[0]?.vehicleClass?.name ||
+            selected?.vehicleClasses?.find((v: any) => v.vehicleClassId === vehicleClassId)?.vehicleClass?.name ||
+            `Vehicle ${vehicleClassId}`;
+
+          return (
+            <div key={vehicleClassId} className="p-4 bg-blue-50/40 rounded-xl border border-blue-100">
+              <div className="flex items-center justify-between mb-3">
+                <div className="font-semibold text-slate-900 flex items-center gap-2">
+                  <Car className="w-4 h-4 text-blue-600" />
+                  {vehicleName}
+                </div>
+                <span className="text-xs text-slate-500">{attempts.length} attempt(s)</span>
+              </div>
+
+              <div className="space-y-2">
+                {attempts.map((a) => {
+                  const d = toDateSafe(a.examDate);
+                  const t = toDateSafe(a.examTime);
+                  return (
+                    <div key={a.id} className="p-3 bg-white rounded-lg border border-slate-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold">
+                            Attempt {a.attemptNo}
+                          </span>
+
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-bold ${
+                              a.result === "PASS"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : a.result === "FAIL"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-slate-200 text-slate-700"
+                            }`}
+                          >
+                            {a.result}
+                          </span>
+                        </div>
+
+                        <div className="text-right">
+                          <div className="text-xs text-slate-700 font-medium">
+                            {d ? d.toLocaleDateString() : "No date"}
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            {t ? t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}
+                          </div>
+                        </div>
+                      </div>
+
+                      {a.notes && (
+                        <div className="mt-2 text-sm text-slate-700">
+                          <span className="font-medium">Notes:</span> {a.notes}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    ) : (
+      <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-500 italic">
+        No driving exam attempts yet
+      </div>
+    )}
+  </div>
+  <p className="text-red-700 font-bold ml-20">
+  Update This Part Using "Reschedule" Page
+</p>
+
+</div>
+
                 </div>
 
                 {/* Right Column */}
@@ -844,101 +1102,145 @@ export default function ViewStudentsPage() {
                     </div>
                   )}
 
-                  {/* Written Exams */}
-                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex items-center justify-center">
-                        <FileText className="w-4 h-4 text-slate-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-900">Written Exams</h3>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {selected.writtenExams && selected.writtenExams.length > 0 ? (
-                        selected.writtenExams.map((w: any) => (
-                          <div key={w.id} className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="px-3 py-1 bg-white text-slate-800 font-medium rounded-lg border border-slate-300 text-sm">
-                                  Attempt {w.attemptNo}
-                                </span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                  w.result === 'PASSED' 
-                                    ? 'bg-emerald-100 text-emerald-800' 
-                                    : w.result === 'FAILED'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-slate-100 text-slate-800'
-                                }`}>
-                                  {w.result}
-                                </span>
-                              </div>
-                              <span className="text-sm text-slate-500">
-                                {new Date(w.examDate).toLocaleDateString()}
-                              </span>
-                            </div>
-                            {w.barCode && (
-                              <div className="text-sm text-slate-600 flex items-center gap-2">
-                                <span className="font-medium">Barcode:</span> {w.barCode}
-                              </div>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-200">
-                          <AlertCircle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                          <p className="text-slate-500 italic">No written exams recorded</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  {/* Written Exam */}
+<div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
+  <div className="flex items-center gap-3 mb-6">
+    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 flex items-center justify-center">
+      <FileText className="w-4 h-4 text-slate-600" />
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900">Written Exams</h3>
+  </div>
 
-                  {/* Driving Exams */}
-                  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center">
-                        <Car className="w-4 h-4 text-blue-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-slate-900">Driving Exams</h3>
-                    </div>
-                    
-                    <div className="space-y-4">
-                      {selected.drivingExams && selected.drivingExams.length > 0 ? (
-                        selected.drivingExams.map((d: any) => (
-                          <div key={d.id} className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <Car className="w-5 h-5 text-blue-600" />
-                                <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                                  d.examResult === 'PASSED' 
-                                    ? 'bg-emerald-100 text-emerald-800' 
-                                    : d.examResult === 'FAILED'
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-amber-100 text-amber-800'
-                                }`}>
-                                  {d.examResult || 'PENDING'}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <div className="text-sm text-slate-600">
-                                <span className="font-medium">Training Dates:</span> {d.trainedDates}
-                              </div>
-                              {d.notes && (
-                                <div className="text-sm text-slate-600">
-                                  <span className="font-medium">Notes:</span> {d.notes}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center bg-blue-50/50 rounded-xl border border-blue-100">
-                          <Car className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                          <p className="text-slate-500 italic">No driving exams recorded</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+  <div className="space-y-4">
+    {selected.writtenExams && selected.writtenExams.length > 0 ? (
+      selected.writtenExams.map((w: any) => {
+        const dateObj = new Date(w.examDate);
+        const date = dateObj.toLocaleDateString();
+        const time = dateObj.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        return (
+          <div
+            key={w.id}
+            className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3"
+          >
+            {/* TOP ROW */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {/* Attempt */}
+                <span className="px-3 py-1 bg-white text-slate-800 font-medium rounded-lg border border-slate-300 text-sm">
+                  Attempt {w.attemptNo}
+                </span>
+
+                {/* Result Badge */}
+                <span
+                  className={`px-2 py-1 rounded-full text-xs font-bold ${
+                    w.result === "PASS"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : w.result === "FAIL"
+                      ? "bg-red-100 text-red-800"
+                      : "bg-slate-200 text-slate-700"
+                  }`}
+                >
+                  {w.result}
+                </span>
+              </div>
+
+              {/* Date + Time */}
+              <div className="text-right">
+                <span className="block text-sm text-slate-700 font-medium">
+                  {date}
+                </span>
+                <span className="block text-xs text-slate-500">{time}</span>
+              </div>
+            </div>
+
+            {/* BARCODE */}
+            {w.barCode && (
+              <div className="text-sm text-slate-600 flex items-center gap-2">
+                <span className="font-medium">Barcode:</span>
+                {w.barCode}
+              </div>
+            )}
+
+            {/* NOTES */}
+            {w.notes && (
+              <div className="text-sm text-slate-700 bg-white border border-slate-300 rounded-lg p-3">
+                <span className="font-medium text-slate-800">Notes:</span>{" "}
+                {w.notes}
+              </div>
+            )}
+          </div>
+        );
+      })
+    ) : (
+      <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-200">
+        <AlertCircle className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+        <p className="text-slate-500 italic">No written exams recorded</p>
+      </div>
+    )}
+  </div>
+</div>
+
+
+
+
+                  {/* Driving Exam Results (Per Vehicle) */}
+<div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border p-6">
+  <div className="flex items-center gap-3 mb-4">
+    <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center">
+      <Car className="w-4 h-4 text-blue-600" />
+    </div>
+    <h3 className="text-lg font-semibold text-slate-900">Driving Exam Results</h3>
+  </div>
+
+  {selected.drivingExamResults && selected.drivingExamResults.length > 0 ? (
+    <div className="space-y-3">
+      {selected.drivingExamResults.map((r: any) => (
+        <div key={r.id} className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+          <div className="flex items-center justify-between">
+            <div className="font-semibold text-slate-900">
+              {r.vehicleClass?.name}
+            </div>
+            <span className="text-sm text-slate-600">
+              {r.examDate ? new Date(r.examDate).toISOString().slice(0, 10) : "No exam date"}
+            </span>
+          </div>
+
+          <div className="mt-2 flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className={
+                r.result === "PASS"
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                  : r.result === "FAIL"
+                  ? "bg-red-50 text-red-700 border-red-200"
+                  : "bg-slate-50 text-slate-700 border-slate-200"
+              }
+            >
+              {r.result}
+            </Badge>
+          </div>
+
+          <div className="mt-3 text-sm text-slate-700">
+            <span className="font-medium">Trained Dates:</span> {r.trainedDates}
+          </div>
+
+          {r.notes && (
+            <div className="mt-2 text-sm text-slate-700">
+              <span className="font-medium">Notes:</span> {r.notes}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-slate-500 italic">Not yet added</p>
+  )}
+</div>
+
                 </div>
               </div>
             </div>
