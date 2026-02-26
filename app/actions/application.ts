@@ -209,11 +209,11 @@ export async function updateDrivingExamAction(formData: FormData) {
   const notesRaw = formData.get("notes");
   const notes = notesRaw && String(notesRaw).trim() ? String(notesRaw).trim() : null;
 
-  await prisma.drivingExam.upsert({
-    where: { applicationId }, // because applicationId is @unique
-    create: { applicationId, trainedDates, examResult, notes },
-    update: { trainedDates, examResult, notes },
-  });
+  // await prisma.drivingExam.upsert({
+  //   where: { applicationId }, // because applicationId is @unique
+  //   create: { applicationId, trainedDates, examResult, notes },
+  //   update: { trainedDates, examResult, notes },
+  // });
 
   revalidatePath(`/applications/${applicationId}`);
   redirect(`/applications/${applicationId}?tab=driving`);
