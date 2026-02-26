@@ -97,16 +97,25 @@ const validExams = data.writtenExams?.filter((exam: any) => exam.examDate && exa
       // });
 
       // 4. Driving Exam Results (per vehicle)
+// 4. Driving Exam Results (per vehicle)
 await tx.drivingExamResult.deleteMany({ where: { applicationId: id } });
 
-if (data.drivingExamResults?.length > 0) {
+// 1. Filter out rows that don't have a vehicleClassId (empty rows from UI)
+const validDrivingResults = data.drivingExamResults?.filter(
+  (r: any) => r.vehicleClassId && r.vehicleClassId !== ""
+) || [];
+
+if (validDrivingResults.length > 0) {
   await tx.drivingExamResult.createMany({
-    data: data.drivingExamResults.map((r: any) => ({
+    data: validDrivingResults.map((r: any) => ({
       applicationId: id,
-      vehicleClassId: parseInt(r.vehicleClassId),
+      // 2. Use a fallback for parseInt to avoid NaN
+      vehicleClassId: parseInt(r.vehicleClassId) || 0,
       trainedDates: r.trainedDates || "",
       examDate: r.examDate ? new Date(r.examDate) : null,
-      result: r.result, 
+      // 3. Ensure 'result' is never undefined. 
+      // Replace "PENDING" with whatever your default Enum value is.
+      result: r.result ?? "PENDING", 
       notes: r.notes || "",
     })),
   });
