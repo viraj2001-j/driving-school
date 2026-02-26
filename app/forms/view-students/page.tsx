@@ -480,7 +480,8 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md:p-10">
+    
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md-10">
       {/* Luxury Background Pattern - Moved z-index behind everything */}
       <div className="fixed inset-0 pointer-events-none -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
@@ -1296,5 +1297,6 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
         </DialogContent>
       </Dialog>
     </div>
+    
   );
 }

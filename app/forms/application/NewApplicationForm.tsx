@@ -67,7 +67,7 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md:p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md-10">
       {/* Luxury Background Pattern */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>

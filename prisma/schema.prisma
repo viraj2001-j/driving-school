@@ -239,7 +239,22 @@ model StudentApplication {
 
   // 👇 NEW
   birthdayWishLogs    BirthdayWishLog[]
+   examReminderLogs    ExamReminderLog[]
 }
+
+model ExamReminderLog {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  examType      String   // "WRITTEN" | "DRIVING_RESULT" | "EXAM_ATTEMPT"
+  examRecordId  Int      // id from WrittenExam / DrivingExamResult / ExamAttempt
+  sentAt        DateTime @default(now())
+
+  application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // one email per exam record
+  @@unique([examType, examRecordId])
+}
+
 
 model BirthdayWishLog {
   id            Int      @id @default(autoincrement())
