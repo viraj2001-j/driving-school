@@ -35,15 +35,15 @@ export async function getPaymentInfo(applicationId: string) {
   });
 }
 
-export async function updateDrivingExamInfo(applicationId: string, data: { trainedDates: string; examResult: string; notes?: string }) {
-  try {
-    await prisma.drivingExam.update({
-      where: { applicationId },
-      data,
-    });
-    return { success: true };
-  } catch (err: any) {
-    console.error("Update Driving Exam Info failed:", err);
-    return { success: false, message: err.message };
-  }
-}
+// export async function updateDrivingExamInfo(applicationId: string, data: { trainedDates: string; examResult: string; notes?: string }) {
+//   try {
+//     await prisma.drivingExam.update({
+//       where: { applicationId },
+//       data,
+//     });
+//     return { success: true };
+//   } catch (err: any) {
+//     console.error("Update Driving Exam Info failed:", err);
+//     return { success: false, message: err.message };
+//   }
+// }
