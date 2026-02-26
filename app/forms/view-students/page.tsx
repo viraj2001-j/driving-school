@@ -490,7 +490,7 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
       </div>
-
+<div></div>
       <div className="relative max-w-6xl mx-auto z-10">
         {/* Luxury Header */}
         <div className="mb-8">
