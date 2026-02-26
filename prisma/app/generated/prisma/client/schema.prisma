@@ -1,0 +1,453 @@
+generator client {
+  provider = "prisma-client-js"
+  // if you use adapter-pg
+  output   = "./app/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/**
+ * Driving school staff users (login accounts)
+ */
+enum Role {
+  SUPERADMIN
+  ADMIN
+  RECEPTION
+  INSTRUCTOR
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  username  String   @unique
+  password  String
+  role      Role     @default(ADMIN)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// /** ✅ Vehicle classes */
+// model VehicleClass {
+//   id              Int      @id @default(autoincrement())
+//   code            String   @unique
+//   name            String
+//   createdAt       DateTime @default(now())
+
+//   applications     ApplicationVehicleClass[]
+//   existingLicenses ExistingLicenseVehicleClass[]
+// }
+
+// /** ✅ Main student application */
+// model StudentApplication {
+//   id          String   @id @default(cuid())
+
+//   referenceNo String   @unique
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+
+//   fullName    String
+//   nic         String   @unique
+//   address     String
+//   email       String?
+//   phone1      String
+//   phone2      String?
+
+//   dateOfBirth DateTime
+//   ageAtApply  Int
+
+//   notes       String?  @db.Text
+
+//   vehicleClasses  ApplicationVehicleClass[]
+//   medical         MedicalExam?
+//   existingLicense ExistingLicense?
+//   fee             FeeSummary?
+// }
+
+// /** ✅ Many-to-many: application <-> vehicle classes */
+// model ApplicationVehicleClass {
+//   id             String @id @default(cuid())
+
+//   applicationId  String
+//   vehicleClassId Int
+
+//   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+//   vehicleClass   VehicleClass       @relation(fields: [vehicleClassId], references: [id], onDelete: Restrict)
+
+//   @@unique([applicationId, vehicleClassId])
+// }
+
+// /** ✅ Medical */
+// enum MedicalStatus {
+//   NOT_REQUIRED
+//   PENDING
+//   PASSED
+//   FAILED
+//   RE_MEDICAL_REQUIRED
+// }
+
+// model MedicalExam {
+//   id             String @id @default(cuid())
+//   applicationId  String @unique
+
+//   status         MedicalStatus @default(PENDING)
+//   medicalAt      DateTime?
+//   reMedicalAt    DateTime?
+
+//   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+// }
+
+// /** ✅ Existing license */
+// model ExistingLicense {
+//   id             String @id @default(cuid())
+//   applicationId  String @unique
+
+//   licenseNo      String
+//   issuedAt       DateTime?
+
+//   /**
+//    * ✅ IMPORTANT FIX:
+//    * Opposite relation field for ExistingLicenseVehicleClass
+//    */
+//   classes        ExistingLicenseVehicleClass[]
+
+//   /**
+//    * Optional text field (you can keep it or remove it)
+//    * If you use checkbox classes, you can remove classesText.
+//    */
+//   classesText    String?
+
+//   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+// }
+
+// /** ✅ Many-to-many: ExistingLicense <-> VehicleClass */
+// model ExistingLicenseVehicleClass {
+//   id                String @id @default(cuid())
+//   existingLicenseId String
+//   vehicleClassId    Int
+
+//   existingLicense ExistingLicense @relation(fields: [existingLicenseId], references: [id], onDelete: Cascade)
+//   vehicleClass     VehicleClass    @relation(fields: [vehicleClassId], references: [id], onDelete: Restrict)
+
+//   @@unique([existingLicenseId, vehicleClassId])
+// }
+
+// /** ✅ Fees */
+// enum FeeStatus {
+//   UNPAID
+//   PARTIAL
+//   PAID
+// }
+
+// model FeeSummary {
+//   id             String   @id @default(cuid())
+//   applicationId  String   @unique
+
+//   totalFee       Decimal  @db.Decimal(10,2)
+//   advanceFee     Decimal  @db.Decimal(10,2)
+//   balanceFee     Decimal  @db.Decimal(10,2)
+
+//   status         FeeStatus @default(UNPAID)
+
+//   createdAt      DateTime @default(now())
+//   updatedAt      DateTime @updatedAt
+
+//   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+// }
+
+// model StudentApplication {
+//   id            String   @id @default(cuid())
+//   referenceNo   String   @unique
+//   fullName      String
+//   nic           String
+//   address       String
+//   email         String?
+//   phone1        String
+//   phone2        String?
+//   dob           DateTime
+//   age           Int
+
+//   canDriveVehicles Boolean @default(false)
+
+//   // Relations
+//   vehicleClasses   ApplicationVehicleClass[]
+//   existingLicense  ExistingLicense?
+
+//   notes            String?
+
+//   writtenExams    WrittenExam[]
+
+//  medicalDate     DateTime?
+// medicalTime     DateTime?
+//   medicalStatus   String   @default("PENDING")
+
+//  paymentInfo     PaymentInfo?
+
+//   createdAt       DateTime @default(now())
+//   updatedAt       DateTime @updatedAt
+
+//   // drivingExams DrivingExam[]
+
+//   paymentRecords PaymentRecord[]
+
+//   drivingExamResults DrivingExamResult[]
+
+//   examAttempts ExamAttempt[]
+// }
+
+model StudentApplication {
+  id          String   @id @default(cuid())
+  referenceNo String   @unique
+  fullName    String
+  nic         String
+  address     String
+  email       String?
+  phone1      String
+  phone2      String?
+  dob         DateTime
+  age         Int
+
+  canDriveVehicles Boolean @default(false)
+
+  // Relations
+  vehicleClasses  ApplicationVehicleClass[]
+  existingLicense ExistingLicense?
+
+  notes String?
+
+  writtenExams WrittenExam[]
+
+  medicalDate   DateTime?
+  medicalTime   DateTime?
+  medicalStatus String    @default("PENDING")
+
+  paymentInfo PaymentInfo?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  paymentRecords     PaymentRecord[]
+  drivingExamResults DrivingExamResult[]
+  examAttempts       ExamAttempt[]
+
+  // 👇 NEW
+  birthdayWishLogs BirthdayWishLog[]
+  examReminderLogs ExamReminderLog[]
+}
+
+model ExamReminderLog {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  examType      String // "WRITTEN" | "DRIVING_RESULT" | "EXAM_ATTEMPT"
+  examRecordId  Int // id from WrittenExam / DrivingExamResult / ExamAttempt
+  sentAt        DateTime @default(now())
+
+  application StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // one email per exam record
+  @@unique([examType, examRecordId])
+}
+
+model BirthdayWishLog {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  year          Int
+  sentAt        DateTime @default(now())
+
+  application StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, year]) // one wish per student per year
+}
+
+model ApplicationVehicleClass {
+  id Int @id @default(autoincrement())
+
+  applicationId  String
+  vehicleClassId Int
+
+  application  StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  vehicleClass VehicleClass       @relation(fields: [vehicleClassId], references: [id])
+}
+
+model VehicleClass {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  applications     ApplicationVehicleClass[]
+  existingLicenses ExistingLicenseVehicleClass[]
+
+  drivingExamResults DrivingExamResult[]
+
+  examAttempts ExamAttempt[]
+}
+
+model ExistingLicense {
+  id            Int    @id @default(autoincrement())
+  applicationId String @unique
+
+  licenseNumber  String?
+  issuedDate     DateTime?
+  vehicleClasses ExistingLicenseVehicleClass[]
+
+  application StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model ExistingLicenseVehicleClass {
+  id Int @id @default(autoincrement())
+
+  licenseId      Int
+  vehicleClassId Int
+
+  license      ExistingLicense @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  vehicleClass VehicleClass    @relation(fields: [vehicleClassId], references: [id])
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
+model PaymentInfo {
+  id            Int    @id @default(autoincrement())
+  applicationId String @unique
+
+  totalFee   Int
+  advanceFee Int
+  status     String    @default("PENDING")
+  paidDate   DateTime? // optional if needed later
+
+  application StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model User1 {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+enum ExamResult {
+  PASS
+  FAIL
+  ABSENT
+}
+
+// model WrittenExam {
+//   id              Int      @id @default(autoincrement())
+
+//   applicationId   String
+//   barCode         String
+//   examDate        DateTime
+//   result          ExamResult
+//   attemptNo       Int
+
+//   createdAt       DateTime @default(now())
+
+//   notes           String?  
+
+//   application     StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+//   @@unique([applicationId, attemptNo])
+// }
+
+enum DrivingExamResultStatus {
+  PASS
+  FAIL
+  ABSENT
+}
+
+// model DrivingExamResult {
+//   id             Int      @id @default(autoincrement())
+//   applicationId  String
+//   vehicleClassId Int
+//   result         DrivingExamResultStatus
+//   notes          String?
+//   examDate       DateTime?
+//   trainedDates   String   @db.Text
+
+//   createdAt      DateTime @default(now())
+
+//   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+//   vehicleClass   VehicleClass       @relation(fields: [vehicleClassId], references: [id], onDelete: Cascade)
+
+//   @@unique([applicationId, vehicleClassId])
+// }
+
+model WrittenExam {
+  id Int @id @default(autoincrement())
+
+  applicationId String
+  barCode       String
+  examDate      DateTime
+  result        ExamResult
+  attemptNo     Int
+
+  createdAt DateTime @default(now())
+  notes     String?
+
+  // NEW: final pass summary (do NOT overwrite result)
+  passAttemptNo Int?
+  passDate      DateTime?
+  passWithText  String?
+
+  application StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, attemptNo])
+}
+
+model DrivingExamResult {
+  id             Int                     @id @default(autoincrement())
+  applicationId  String
+  vehicleClassId Int
+  result         DrivingExamResultStatus
+  notes          String?
+  examDate       DateTime?
+  trainedDates   String                  @db.Text
+
+  createdAt DateTime @default(now())
+
+  // NEW: final pass summary (do NOT overwrite result)
+  passAttemptNo Int?
+  passDate      DateTime?
+  passWithText  String?
+
+  application  StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  vehicleClass VehicleClass       @relation(fields: [vehicleClassId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, vehicleClassId])
+}
+
+model PaymentRecord {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  amount        Int
+  paidDate      DateTime @default(now())
+
+  application StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model ExamAttempt {
+  id            Int    @id @default(autoincrement())
+  applicationId String
+
+  examType       String
+  vehicleClassId Int?
+
+  attemptNo Int
+  examDate  DateTime
+  examTime  DateTime?
+  notes     String?
+
+  result DrivingExamResultStatus @default(ABSENT)
+
+  createdAt DateTime @default(now())
+
+  application  StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  vehicleClass VehicleClass?      @relation(fields: [vehicleClassId], references: [id])
+}
