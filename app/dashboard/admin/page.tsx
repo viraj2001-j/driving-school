@@ -73,7 +73,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* 🔵 BLUE OUTER BACKGROUND SECTION */}
-        <div className="w-279 h-1 bg-blue-600 mb-0 ml-4 rounded-2xl"></div>
+        
         <div className="bg-blue-100/95 rounded-3xl p-8 border border-blue-100 shadow-inner space-y-10">
           {/* KPI Cards – Counts */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
