@@ -1,239 +1,177 @@
-// // app/lib/sendExamReminder.ts
-// import { sendEmail } from "./email";
-
-// export type ExamReminderPayload = {
-//   fullName: string;
-//   email: string | null;
-//   examType: "WRITTEN" | "DRIVING_RESULT" | "EXAM_ATTEMPT";
-//   examDate: Date;
-//   examTime?: Date | null;
-//   extraInfo?: string; // e.g. vehicle class, attempt no, etc.
-// };
-
-// export async function sendExamReminder(payload: ExamReminderPayload) {
-//   const { fullName, email, examType, examDate, examTime, extraInfo } = payload;
-
-//   if (!email) {
-//     console.log(`Skipping ${fullName} (no email set)`);
-//     return;
-//   }
-
-//   const dateStr = examDate.toLocaleDateString("en-GB", {
-//     year: "numeric",
-//     month: "short",
-//     day: "2-digit",
-//     timeZone: "Asia/Colombo",
-//   });
-
-//   const timeStr = examTime
-//     ? examTime.toLocaleTimeString("en-GB", {
-//         hour: "2-digit",
-//         minute: "2-digit",
-//         timeZone: "Asia/Colombo",
-//       })
-//     : "N/A";
-
-//   let examLabel = "";
-//   if (examType === "WRITTEN") examLabel = "Written exam";
-//   else if (examType === "DRIVING_RESULT") examLabel = "Driving exam";
-//   else examLabel = "Exam attempt";
-
-//   const subject = `Reminder: Your ${examLabel} on ${dateStr}`;
-
-//   const extraLine = extraInfo ? `\nDetails: ${extraInfo}` : "";
-
-//   const textBody = `
-// Hi ${fullName},
-
-// This is a reminder about your ${examLabel}.
-
-// 📅 Date: ${dateStr}
-// ⏰ Time: ${timeStr}${extraLine}
-
-// Please be on time and bring the required documents.
-
-// - Your Driving School
-// `.trim();
-
-//   const htmlBody = `
-//   <p>Hi <strong>${fullName}</strong>,</p>
-//   <p>This is a reminder about your <strong>${examLabel}</strong>.</p>
-//   <ul>
-//     <li><strong>Date:</strong> ${dateStr}</li>
-//     <li><strong>Time:</strong> ${timeStr}</li>
-//   </ul>
-//   ${extraInfo ? `<p><strong>Details:</strong> ${extraInfo}</p>` : ""}
-//   <p>Please be on time and bring the required documents.</p>
-//   <p>- Your Driving School</p>
-//   `;
-
-//   await sendEmail({
-//     to: email,
-//     subject,
-//     text: textBody,
-//     html: htmlBody,
-//   });
-
-//   console.log(`📧 Exam reminder sent to ${fullName} (${examLabel})`);
-// }
-
-
-// // app/lib/sendExamReminder.ts
-// import { sendEmail } from "./email";
-
-// export type ExamReminderPayload = {
-//   fullName: string;
-//   email: string | null;
-//   examType: "WRITTEN" | "DRIVING_RESULT" | "EXAM_ATTEMPT";
-//   examDate: Date;              // non-null here
-//   examTime?: Date | null;      // optional
-//   extraInfo?: string;
-// };
-
-// export async function sendExamReminder(payload: ExamReminderPayload) {
-//   const { fullName, email, examType, examDate, examTime, extraInfo } = payload;
-
-//   if (!email) {
-//     console.log(`Skipping ${fullName} (no email set)`);
-//     return;
-//   }
-
-//   const dateStr = examDate.toLocaleDateString("en-GB", {
-//     year: "numeric",
-//     month: "short",
-//     day: "2-digit",
-//     timeZone: "Asia/Colombo",
-//   });
-
-//   const timeStr = examTime
-//     ? examTime.toLocaleTimeString("en-GB", {
-//         hour: "2-digit",
-//         minute: "2-digit",
-//         timeZone: "Asia/Colombo",
-//       })
-//     : "N/A";
-
-//   let examLabel = "";
-//   if (examType === "WRITTEN") examLabel = "Written exam";
-//   else if (examType === "DRIVING_RESULT") examLabel = "Driving exam";
-//   else examLabel = "Exam attempt";
-
-//   const subject = `Reminder: Your ${examLabel} on ${dateStr}`;
-
-//   const extraLine = extraInfo ? `\nDetails: ${extraInfo}` : "";
-
-//   const textBody = `
-// Hi ${fullName},
-
-// This is a reminder about your ${examLabel}.
-
-// 📅 Date: ${dateStr}
-// ⏰ Time: ${timeStr}${extraLine}
-
-// Please be on time and bring the required documents.
-
-// - Your Driving School
-// `.trim();
-
-//   const htmlBody = `
-//   <p>Hi <strong>${fullName}</strong>,</p>
-//   <p>This is a reminder about your <strong>${examLabel}</strong>.</p>
-//   <ul>
-//     <li><strong>Date:</strong> ${dateStr}</li>
-//     <li><strong>Time:</strong> ${timeStr}</li>
-//   </ul>
-//   ${extraInfo ? `<p><strong>Details:</strong> ${extraInfo}</p>` : ""}
-//   <p>Please be on time and bring the required documents.</p>
-//   <p>- Randika Driving School</p>
-//   `;
-
-//   await sendEmail({
-//     to: email,
-//     subject,
-//     text: textBody,
-//     html: htmlBody,
-//   });
-
-//   console.log(`📧 Exam reminder sent to ${fullName} (${examLabel})`);
-// }
-
-
 // app/lib/sendExamReminder.ts
 import { sendEmail } from "./email";
 
-export type ExamReminderPayload = {
+type StudentInfo = {
   fullName: string;
   email: string | null;
-  examType: "WRITTEN" | "DRIVING_RESULT" | "EXAM_ATTEMPT";
-  examDate: Date;              // non-null
-  examTime?: Date | null;      // optional
-  extraInfo?: string;
 };
 
-export async function sendExamReminder(payload: ExamReminderPayload) {
-  const { fullName, email, examType, examDate, examTime, extraInfo } = payload;
+type WrittenExamContext = {
+  type: "WRITTEN";
+  student: StudentInfo;
+  examDate: Date;
+  attemptNo: number;
+  barCode: string;
+};
 
-  if (!email) {
-    console.log(`Skipping ${fullName} (no email set)`);
-    return;
-  }
+type DrivingExamContext = {
+  type: "DRIVING";
+  student: StudentInfo;
+  examDate: Date;
+  vehicleClassName: string;
+};
 
-  const dateStr = examDate.toLocaleDateString("en-GB", {
+type AttemptContext = {
+  type: "ATTEMPT";
+  student: StudentInfo;
+  examDate: Date;
+  examTime?: Date | null;
+  examTypeLabel: string; // e.g. "WRITTEN" | "DRIVING"
+  vehicleClassName?: string | null;
+  attemptNo: number;
+};
+
+export type ExamReminderContext =
+  | WrittenExamContext
+  | DrivingExamContext
+  | AttemptContext;
+
+function formatInColombo(date: Date) {
+  return date.toLocaleString("en-US", {
+    timeZone: "Asia/Colombo",
     year: "numeric",
     month: "short",
     day: "2-digit",
-    timeZone: "Asia/Colombo",
-  });
-
-  // 👇 Use examTime if given, otherwise use examDate
-  const timeSource = examTime ?? examDate;
-
-  const timeStr = timeSource.toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Asia/Colombo",
   });
+}
 
-  let examLabel = "";
-  if (examType === "WRITTEN") examLabel = "Written exam";
-  else if (examType === "DRIVING_RESULT") examLabel = "Driving exam";
-  else examLabel = "Exam attempt";
+export async function sendExamReminderEmail(
+  ctx: ExamReminderContext
+): Promise<boolean> {
+  const { student } = ctx;
 
-  const subject = `Reminder: Your ${examLabel} on ${dateStr}`;
+  // 🔥 If no email, skip and return false
+  if (!student.email) {
+    console.log(
+      `Skipping exam reminder for ${student.fullName} — no email set`
+    );
+    return false;
+  }
 
-  const extraLine = extraInfo ? `\nDetails: ${extraInfo}` : "";
+  let subject = "";
+  let htmlBody = "";
+  let textBody = "";
 
-  const textBody = `
-Hi ${fullName},
+  if (ctx.type === "WRITTEN") {
+    const when = formatInColombo(ctx.examDate);
 
-This is a reminder about your ${examLabel}.
+    subject = "Written Exam Reminder";
+    textBody = `
+Hi ${student.fullName},
 
-📅 Date: ${dateStr}
-⏰ Time: ${timeStr}${extraLine}
+This is a reminder for your WRITTEN exam.
 
-Please be on time and bring the required documents.
+Barcode: ${ctx.barCode}
+Attempt: ${ctx.attemptNo}
+Date & Time: ${when}
+
+Please arrive on time and bring required documents.
 
 - Randika Driving School
 `.trim();
 
-  const htmlBody = `
-  <p>Hi <strong>${fullName}</strong>,</p>
-  <p>This is a reminder about your <strong>${examLabel}</strong>.</p>
-  <ul>
-    <li><strong>Date:</strong> ${dateStr}</li>
-    <li><strong>Time:</strong> ${timeStr}</li>
-  </ul>
-  ${extraInfo ? `<p><strong>Details:</strong> ${extraInfo}</p>` : ""}
-  <p>Please be on time and bring the required documents.</p>
-  <p>- Your Driving School</p>
-  `;
+    htmlBody = `
+      <p>Hi <strong>${student.fullName}</strong>,</p>
+      <p>This is a reminder for your <strong>WRITTEN exam</strong>.</p>
+      <ul>
+        <li><strong>Barcode:</strong> ${ctx.barCode}</li>
+        <li><strong>Attempt:</strong> ${ctx.attemptNo}</li>
+        <li><strong>Date &amp; Time:</strong> ${when}</li>
+      </ul>
+      <p>Please arrive on time and bring required documents.</p>
+      <p>- Randika Driving School</p>
+    `;
+  } else if (ctx.type === "DRIVING") {
+    const when = formatInColombo(ctx.examDate);
 
-  await sendEmail({
-    to: email,
-    subject,
-    text: textBody,
-    html: htmlBody,
-  });
+    subject = "Driving Exam Reminder";
+    textBody = `
+Hi ${student.fullName},
 
-  console.log(`📧 Exam reminder sent to ${fullName} (${examLabel})`);
+This is a reminder for your DRIVING exam.
+
+Vehicle Class: ${ctx.vehicleClassName}
+Date & Time: ${when}
+
+Please arrive early and be prepared.
+
+- Randika Driving School
+`.trim();
+
+    htmlBody = `
+      <p>Hi <strong>${student.fullName}</strong>,</p>
+      <p>This is a reminder for your <strong>DRIVING exam</strong>.</p>
+      <ul>
+        <li><strong>Vehicle Class:</strong> ${ctx.vehicleClassName}</li>
+        <li><strong>Date &amp; Time:</strong> ${when}</li>
+      </ul>
+      <p>Please arrive early and be prepared.</p>
+      <p>- Randika Driving School</p>
+    `;
+  } else {
+    // ATTEMPT
+    const when = formatInColombo(ctx.examDate);
+
+    subject = "Exam Attempt Reminder";
+    textBody = `
+Hi ${student.fullName},
+
+This is a reminder for your exam attempt.
+
+Type: ${ctx.examTypeLabel}
+Attempt: ${ctx.attemptNo}
+${ctx.vehicleClassName ? `Vehicle Class: ${ctx.vehicleClassName}\n` : ""}Date & Time: ${when}
+
+Good luck!
+
+- Randika Driving School
+`.trim();
+
+    htmlBody = `
+      <p>Hi <strong>${student.fullName}</strong>,</p>
+      <p>This is a reminder for your <strong>exam attempt</strong>.</p>
+      <ul>
+        <li><strong>Type:</strong> ${ctx.examTypeLabel}</li>
+        <li><strong>Attempt:</strong> ${ctx.attemptNo}</li>
+        ${
+          ctx.vehicleClassName
+            ? `<li><strong>Vehicle Class:</strong> ${ctx.vehicleClassName}</li>`
+            : ""
+        }
+        <li><strong>Date &amp; Time:</strong> ${when}</li>
+      </ul>
+      <p>Good luck!</p>
+      <p>- Randika Driving School</p>
+    `;
+  }
+
+  try {
+    await sendEmail({
+      to: student.email,
+      subject,
+      text: textBody,
+      html: htmlBody,
+    });
+
+    console.log(`✅ Exam reminder email sent to ${student.fullName}`);
+    return true;
+  } catch (err) {
+    console.error(
+      `❌ Failed to send exam reminder to ${student.fullName} <${student.email}>`,
+      err
+    );
+    return false;
+  }
 }

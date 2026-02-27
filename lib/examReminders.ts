@@ -1,33 +1,58 @@
 // app/lib/examReminders.ts
-import  prisma  from "@/lib/db";
-import { sendExamReminder } from "./sendExamReminder";
+import prisma from "@/lib/db";
+import { sendExamReminderEmail } from "./sendExamReminder";
+
+/**
+ * Get start and end of a Colombo calendar day.
+ * daysFromToday = 0 -> today
+ * daysFromToday = 1 -> tomorrow
+ * ...
+ */
+function colomboDayRange(daysFromToday = 0) {
+  const now = new Date();
+
+  // Extract Colombo year-month-day
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Colombo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const y = parts.find((p) => p.type === "year")!.value;
+  const m = parts.find((p) => p.type === "month")!.value;
+  const d = parts.find((p) => p.type === "day")!.value;
+
+  // Explicitly build a Colombo time ISO with offset +05:30
+  const start = new Date(`${y}-${m}-${d}T00:00:00+05:30`);
+  start.setDate(start.getDate() + daysFromToday);
+
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+
+  return { start, end };
+}
 
 export async function processExamReminders() {
   console.log("🚀 processExamReminders started");
 
-  const now = new Date();
-  const colomboNow = new Date(
-    now.toLocaleString("en-US", { timeZone: "Asia/Colombo" })
-  );
+  // 🔧 NEW BEHAVIOUR:
+  // Consider all exams from TODAY (Colombo) up to 7 days ahead.
+  const { start: todayStart } = colomboDayRange(0);
+  const { end: weekEnd } = colomboDayRange(7);
 
-  const year = colomboNow.getFullYear();
-  const month = colomboNow.getMonth() + 1;
-  const day = colomboNow.getDate();
+  const windowStart = todayStart;
+  const windowEnd = weekEnd;
 
   console.log(
-    `📅 Colombo date: ${colomboNow.toISOString()} (year=${year}, month=${month}, day=${day})`
+    `📅 Exam reminder window (Colombo 7 days): ${windowStart.toISOString()} to ${windowEnd.toISOString()}`
   );
-
-  // We'll use a simple day range (00:00 to next day 00:00)
-  const dayStart = new Date(year, month - 1, day);
-  const dayEnd = new Date(year, month - 1, day + 1);
 
   // 1️⃣ WRITTEN EXAMS
   const writtenExams = await prisma.writtenExam.findMany({
     where: {
       examDate: {
-        gte: dayStart,
-        lt: dayEnd,
+        gte: windowStart,
+        lt: windowEnd,
       },
     },
     include: {
@@ -35,56 +60,59 @@ export async function processExamReminders() {
     },
   });
 
-  console.log(`📝 Written exams today: ${writtenExams.length}`);
+  console.log(`✏️ Upcoming written exams in window: ${writtenExams.length}`);
 
-  for (const w of writtenExams) {
-    if (!w.application) continue;
+  for (const exam of writtenExams) {
+    try {
+      const already = await prisma.examReminderLog.findFirst({
+        where: {
+          examType: "WRITTEN",
+          examRecordId: exam.id,
+        },
+      });
 
-    // If examDate is nullable in your schema, guard it here:
-    if (!w.examDate) {
-      console.log(`⚠️ WrittenExam #${w.id} has no examDate, skipping`);
-      continue;
+      if (already) {
+        console.log(
+          `⏭️ Skipping written exam ${exam.id} (reminder already sent)`
+        );
+        continue;
+      }
+
+      const sent = await sendExamReminderEmail({
+        type: "WRITTEN",
+        student: {
+          fullName: exam.application.fullName,
+          email: exam.application.email,
+        },
+        examDate: exam.examDate,
+        attemptNo: exam.attemptNo,
+        barCode: exam.barCode,
+      });
+
+      // Only log if email was actually sent
+      if (!sent) continue;
+
+      await prisma.examReminderLog.create({
+        data: {
+          applicationId: exam.applicationId,
+          examType: "WRITTEN",
+          examRecordId: exam.id,
+        },
+      });
+
+      console.log(`✅ Logged written exam reminder for examId=${exam.id}`);
+    } catch (error) {
+      console.error(`❌ Error handling written exam ${exam.id}`, error);
     }
-
-    const already = await prisma.examReminderLog.findFirst({
-      where: {
-        examType: "WRITTEN",
-        examRecordId: w.id,
-      },
-    });
-
-    if (already) {
-      console.log(`⏭️ Reminder already sent for WrittenExam #${w.id}`);
-      continue;
-    }
-
-    await sendExamReminder({
-      fullName: w.application.fullName,
-      email: w.application.email,
-      examType: "WRITTEN",
-      examDate: w.examDate,
-      examTime: null,
-      extraInfo:
-        typeof w.attemptNo === "number"
-          ? `Attempt no: ${w.attemptNo}`
-          : undefined,
-    });
-
-    await prisma.examReminderLog.create({
-      data: {
-        applicationId: w.applicationId,
-        examType: "WRITTEN",
-        examRecordId: w.id,
-      },
-    });
   }
 
   // 2️⃣ DRIVING EXAMS (DrivingExamResult)
-  const drivingResults = await prisma.drivingExamResult.findMany({
+  const drivingExams = await prisma.drivingExamResult.findMany({
     where: {
       examDate: {
-        gte: dayStart,
-        lt: dayEnd,
+        not: null,
+        gte: windowStart,
+        lt: windowEnd,
       },
     },
     include: {
@@ -93,57 +121,58 @@ export async function processExamReminders() {
     },
   });
 
-  console.log(`🚗 Driving exam results today: ${drivingResults.length}`);
+  console.log(`🚗 Upcoming driving exams in window: ${drivingExams.length}`);
 
-  for (const d of drivingResults) {
-    if (!d.application) continue;
+  for (const exam of drivingExams) {
+    if (!exam.examDate) continue;
 
-    // if examDate is nullable in your schema, guard it:
-    if (!d.examDate) {
-      console.log(`⚠️ DrivingExamResult #${d.id} has no examDate, skipping`);
-      continue;
+    try {
+      const already = await prisma.examReminderLog.findFirst({
+        where: {
+          examType: "DRIVING_RESULT",
+          examRecordId: exam.id,
+        },
+      });
+
+      if (already) {
+        console.log(
+          `⏭️ Skipping driving exam ${exam.id} (reminder already sent)`
+        );
+        continue;
+      }
+
+      const sent = await sendExamReminderEmail({
+        type: "DRIVING",
+        student: {
+          fullName: exam.application.fullName,
+          email: exam.application.email,
+        },
+        examDate: exam.examDate,
+        vehicleClassName: exam.vehicleClass.name,
+      });
+
+      if (!sent) continue;
+
+      await prisma.examReminderLog.create({
+        data: {
+          applicationId: exam.applicationId,
+          examType: "DRIVING_RESULT",
+          examRecordId: exam.id,
+        },
+      });
+
+      console.log(`✅ Logged driving exam reminder for examId=${exam.id}`);
+    } catch (error) {
+      console.error(`❌ Error handling driving exam ${exam.id}`, error);
     }
-
-    const already = await prisma.examReminderLog.findFirst({
-      where: {
-        examType: "DRIVING_RESULT",
-        examRecordId: d.id,
-      },
-    });
-
-    if (already) {
-      console.log(`⏭️ Reminder already sent for DrivingExamResult #${d.id}`);
-      continue;
-    }
-
-    await sendExamReminder({
-      fullName: d.application.fullName,
-      email: d.application.email,
-      examType: "DRIVING_RESULT",
-      examDate: d.examDate,
-      // DrivingExamResult in your schema does NOT have examTime,
-      // so we don't touch it here:
-      examTime: null,
-      extraInfo: d.vehicleClass
-        ? `Vehicle class: ${d.vehicleClass.code ?? d.vehicleClass.name}`
-        : undefined,
-    });
-
-    await prisma.examReminderLog.create({
-      data: {
-        applicationId: d.applicationId,
-        examType: "DRIVING_RESULT",
-        examRecordId: d.id,
-      },
-    });
   }
 
-  // 3️⃣ GENERIC EXAM ATTEMPTS (ExamAttempt)
+  // 3️⃣ EXAM ATTEMPTS (ExamAttempt)
   const attempts = await prisma.examAttempt.findMany({
     where: {
       examDate: {
-        gte: dayStart,
-        lt: dayEnd,
+        gte: windowStart,
+        lt: windowEnd,
       },
     },
     include: {
@@ -152,53 +181,53 @@ export async function processExamReminders() {
     },
   });
 
-  console.log(`📘 Exam attempts today: ${attempts.length}`);
+  console.log(`📘 Upcoming exam attempts in window: ${attempts.length}`);
 
-  for (const a of attempts) {
-    if (!a.application) continue;
+  for (const attempt of attempts) {
+    try {
+      const already = await prisma.examReminderLog.findFirst({
+        where: {
+          examType: "EXAM_ATTEMPT",
+          examRecordId: attempt.id,
+        },
+      });
 
-    if (!a.examDate) {
-      console.log(`⚠️ ExamAttempt #${a.id} has no examDate, skipping`);
-      continue;
-    }
+      if (already) {
+        console.log(
+          `⏭️ Skipping exam attempt ${attempt.id} (reminder already sent)`
+        );
+        continue;
+      }
 
-    const already = await prisma.examReminderLog.findFirst({
-      where: {
-        examType: "EXAM_ATTEMPT",
-        examRecordId: a.id,
-      },
-    });
+      const sent = await sendExamReminderEmail({
+        type: "ATTEMPT",
+        student: {
+          fullName: attempt.application.fullName,
+          email: attempt.application.email,
+        },
+        examDate: attempt.examDate,
+        examTime: attempt.examTime ?? null,
+        examTypeLabel: attempt.examType,
+        vehicleClassName: attempt.vehicleClass?.name ?? null,
+        attemptNo: attempt.attemptNo,
+      });
 
-    if (already) {
-      console.log(`⏭️ Reminder already sent for ExamAttempt #${a.id}`);
-      continue;
-    }
+      if (!sent) continue;
 
-    const extraPieces: string[] = [];
-    if (a.examType) extraPieces.push(`Type: ${a.examType}`);
-    if (typeof a.attemptNo === "number")
-      extraPieces.push(`Attempt no: ${a.attemptNo}`);
-    if (a.vehicleClass)
-      extraPieces.push(
-        `Vehicle class: ${a.vehicleClass.code ?? a.vehicleClass.name}`
+      await prisma.examReminderLog.create({
+        data: {
+          applicationId: attempt.applicationId,
+          examType: "EXAM_ATTEMPT",
+          examRecordId: attempt.id,
+        },
+      });
+
+      console.log(
+        `✅ Logged exam attempt reminder for attemptId=${attempt.id}`
       );
-
-    await sendExamReminder({
-      fullName: a.application.fullName,
-      email: a.application.email,
-      examType: "EXAM_ATTEMPT",
-      examDate: a.examDate,
-      examTime: a.examTime ?? null, // ExamAttempt has examTime? -> Date | null
-      extraInfo: extraPieces.length ? extraPieces.join(" | ") : undefined,
-    });
-
-    await prisma.examReminderLog.create({
-      data: {
-        applicationId: a.applicationId,
-        examType: "EXAM_ATTEMPT",
-        examRecordId: a.id,
-      },
-    });
+    } catch (error) {
+      console.error(`❌ Error handling exam attempt ${attempt.id}`, error);
+    }
   }
 
   console.log("✅ processExamReminders finished");

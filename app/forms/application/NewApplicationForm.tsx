@@ -67,7 +67,7 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md-10">
+    <div className="min-h-screen  " >
       {/* Luxury Background Pattern */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
@@ -108,11 +108,11 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
         </div>
 
         {/* Luxury Form Container */}
-        <div className="relative">
+        <div className="relative ">
           {/* Decorative Top Accent */}
           <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
           
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+          <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
             {/* Form Header with Luxury Accent */}
             <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
@@ -518,24 +518,7 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
               </div>
             </form>
 
-            {/* Luxury Footer */}
-            <div className="px-8 py-6 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    <span className="text-sm text-slate-600 font-medium">Ready for submission</span>
-                  </div>
-                  <div className="hidden md:block w-px h-4 bg-slate-300"></div>
-                  <div className="text-sm text-slate-500">
-                    All information is secured & encrypted
-                  </div>
-                </div>
-                <div className="text-sm text-slate-500 font-light">
-                  © {new Date().getFullYear()} Elite Driving Academy • Premium Services
-                </div>
-              </div>
-            </div>
+            
           </div>
 
           {/* Decorative Bottom Accent */}
