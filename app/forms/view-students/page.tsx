@@ -231,7 +231,7 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
         </div>
 
         {/* Main Content - Single Column Layout */}
-        <div className="space-y-8 ">
+        <div className="space-y-8 m-7">
           {/* Search Card */}
           <div ref={searchRef} className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-visible relative mb-25">
             <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
