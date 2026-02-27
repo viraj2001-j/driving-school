@@ -83,11 +83,11 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
+                <div className="relative mt-7">
+                  <div className="w-3 mt-2 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
                   <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
                 </div>
-                <div>
+                <div className="mt-10">
                   <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
                     Student Application
                   </h1>
@@ -96,7 +96,7 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
+              <div className="hidden md:flex mt-9 items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
                 <div className="relative">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>

@@ -336,12 +336,7 @@ model PaymentInfo {
   application     StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
-model User1 {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now())
-}
+
 
 enum ExamResult {
   PASS

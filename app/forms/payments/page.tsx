@@ -462,7 +462,7 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md:p-10">
+    <div className="min-h-screen  p-6 md:p-10">
       {/* Luxury Background Pattern */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
@@ -472,7 +472,7 @@ export default function PaymentsPage() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
       </div>
 
-      <div className="relative max-w-5xl mx-auto">
+      <div className="relative max-w-7xl mx-auto">
         {/* Luxury Header */}
         <div className="mb-10 md:mb-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
@@ -508,7 +508,7 @@ export default function PaymentsPage() {
           <div className="relative">
             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
             
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
               {/* Form Header */}
               <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600"></div>
@@ -919,26 +919,7 @@ export default function PaymentsPage() {
                   </div>
                 </div>
 
-                {/* Luxury Footer */}
-                <div className="px-8 py-6 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${selectedStudent ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                        <span className="text-sm text-slate-600 font-medium">
-                          {selectedStudent ? 'Payment session active' : 'Awaiting student selection'}
-                        </span>
-                      </div>
-                      <div className="hidden md:block w-px h-4 bg-slate-300"></div>
-                      <div className="text-sm text-slate-500">
-                        All transactions are secured & encrypted
-                      </div>
-                    </div>
-                    <div className="text-sm text-slate-500 font-light">
-                      © {new Date().getFullYear()} Elite Driving Academy • Premium Services
-                    </div>
-                  </div>
-                </div>
+
               </div>
               <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent"></div>
             </div>
@@ -949,7 +930,7 @@ export default function PaymentsPage() {
             <div className="relative">
               <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
               
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+              <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
                 <div className="p-16 text-center">
                   <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center mb-6">
                     <CreditCard className="w-12 h-12 text-slate-400" />

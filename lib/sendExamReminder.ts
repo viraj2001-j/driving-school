@@ -139,22 +139,101 @@ Good luck!
 - Randika Driving School
 `.trim();
 
-    htmlBody = `
-      <p>Hi <strong>${student.fullName}</strong>,</p>
-      <p>This is a reminder for your <strong>exam attempt</strong>.</p>
-      <ul>
-        <li><strong>Type:</strong> ${ctx.examTypeLabel}</li>
-        <li><strong>Attempt:</strong> ${ctx.attemptNo}</li>
-        ${
-          ctx.vehicleClassName
-            ? `<li><strong>Vehicle Class:</strong> ${ctx.vehicleClassName}</li>`
-            : ""
-        }
-        <li><strong>Date &amp; Time:</strong> ${when}</li>
-      </ul>
-      <p>Good luck!</p>
-      <p>- Randika Driving School</p>
-    `;
+const htmlBody = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Exam Reminder</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4; padding:20px 0;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; background-color:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.06);">
+
+          <!-- HEADER -->
+          <tr>
+            <td align="center" style="background:linear-gradient(135deg,#6a11cb,#2575fc); padding:18px 20px;">
+              <h1 style="margin:0; font-size:22px; color:#ffffff; font-weight:bold;">
+                📘 Exam Reminder
+              </h1>
+            </td>
+          </tr>
+
+          <!-- BODY CONTENT -->
+          <tr>
+            <td style="padding:24px 24px 10px 24px; color:#333333; font-size:15px; line-height:1.6;">
+              
+              <p style="margin:0 0 12px 0;">Hi <strong>${student.fullName}</strong>,</p>
+              <p style="margin:0 0 14px 0;">
+                This is a friendly reminder regarding your upcoming exam attempt.
+              </p>
+
+              <table cellpadding="8" cellspacing="0" border="0" style="background-color:#f7f9fc; width:100%; border-radius:8px; font-size:14px; margin-bottom:16px;">
+                <tr>
+                  <td><strong>Exam Type:</strong></td>
+                  <td>${ctx.examTypeLabel}</td>
+                </tr>
+                <tr>
+                  <td><strong>Attempt No:</strong></td>
+                  <td>${ctx.attemptNo}</td>
+                </tr>
+                ${
+                  ctx.vehicleClassName
+                    ? `
+                <tr>
+                  <td><strong>Vehicle Class:</strong></td>
+                  <td>${ctx.vehicleClassName}</td>
+                </tr>
+                `
+                    : ""
+                }
+                <tr>
+                  <td><strong>Date & Time:</strong></td>
+                  <td>${when}</td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 12px 0;">
+                Please make sure to arrive on time and bring all required documents.
+              </p>
+
+              <p style="margin:0;">
+                Good luck — you've got this! 💪🚗📘
+              </p>
+            </td>
+          </tr>
+
+          <!-- DIVIDER -->
+          <tr>
+            <td style="padding:0 24px;">
+              <hr style="border:none; border-top:1px solid #eeeeee; margin:16px 0 10px;" />
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding:0 24px 20px 24px; color:#777777; font-size:13px; line-height:1.5;">
+              <p style="margin:0 0 4px 0;">
+                With regards,
+              </p>
+              <p style="margin:0 0 12px 0; font-weight:bold; color:#444444;">
+                Randhika Driving School
+              </p>
+              <p style="margin:0; font-size:12px; color:#999999;">
+                This is an automated reminder. Please do not reply to this email.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+`;
   }
 
   try {

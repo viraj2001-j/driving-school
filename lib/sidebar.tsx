@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -23,10 +23,16 @@ import {
   FaUserClock,
 } from "react-icons/fa";
 
+type AuthUser = {
+  name: string;
+  role: string;
+};
+
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null); 
 
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
 
@@ -35,6 +41,22 @@ const Sidebar = () => {
     router.push("/login");
     router.refresh();
   }
+
+  // 🔹 Fetch current user once
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        // adjust if your JSON shape is different
+        setUser(data.user);
+      } catch (err) {
+        console.error("Failed to load user", err);
+      }
+    }
+    loadUser();
+  }, []);
 
   const menuItems = [
     { name: "Dashboard", href: "/dashboard", icon: <FaHome /> },
@@ -51,7 +73,7 @@ const Sidebar = () => {
     <>
       <aside
   className={`fixed top-0 left-0 z-40 h-screen transition-all duration-500 ease-in-out 
-  bg-gradient-to-b from-blue-100 via-blue-300 to-blue-500 
+  bg-gradient-to-b from-blue-950 via-blue-200 to-blue-950
   text-gray-800 shadow-xl border-r border-gray-200 ${
     isCollapsed ? "w-20" : "w-72"
   }`}
@@ -99,7 +121,7 @@ const Sidebar = () => {
                   className={`flex items-center h-12 px-3 rounded-xl transition-all duration-200 group relative ${
                     isActive
                       ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      : "text-shadow-gray-700 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                 >
                   <div className={`text-lg transition-colors ${
@@ -133,17 +155,25 @@ const Sidebar = () => {
           </nav>
 
           {/* Footer Section */}
-          <div className="p-4 border-t border-gray-200">
-            {/* User Info - Always visible */}
+                    <div className="p-4 border-t border-gray-200">
+            {/* User Info - show real user & role */}
             {!isCollapsed && (
               <div className="mb-3 px-3 py-2 bg-gray-50 rounded-lg">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
                     <FaUserClock className="text-indigo-600 text-sm" />
                   </div>
+
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{}Admin User</p>
-                    
+                    {/* Name */}
+                    <p className="text-sm font-semibold text-gray-900 truncate">
+                      {user?.name ?? "Loading user..."}
+                    </p>
+
+                    {/* Role */}
+                    <p className="text-xs text-gray-500 font-medium mt-0.5 truncate">
+                      Role: {user?.role ?? "—"}
+                    </p>
                   </div>
                 </div>
               </div>

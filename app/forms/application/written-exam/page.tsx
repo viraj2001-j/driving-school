@@ -101,7 +101,7 @@ export default function WrittenExamPage() {
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
       </div>
 
-      <div className="relative max-w-4xl mx-auto">
+      <div className="relative max-w-7xl mx-auto">
         {/* Luxury Header */}
         <div className="mb-10 md:mb-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
@@ -446,26 +446,7 @@ export default function WrittenExamPage() {
               </div>
             </div>
 
-            {/* Luxury Footer */}
-            <div className="px-8 py-6 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${selectedStudent ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
-                    <span className="text-sm text-slate-600 font-medium">
-                      {selectedStudent ? 'Ready for submission' : 'Awaiting student selection'}
-                    </span>
-                  </div>
-                  <div className="hidden md:block w-px h-4 bg-slate-300"></div>
-                  <div className="text-sm text-slate-500">
-                    All exam records are secured & encrypted
-                  </div>
-                </div>
-                <div className="text-sm text-slate-500 font-light">
-                  © {new Date().getFullYear()} Elite Driving Academy • Premium Services
-                </div>
-              </div>
-            </div>
+
           </div>
 
           <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>

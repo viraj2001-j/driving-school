@@ -328,7 +328,7 @@ export default function DrivingExamResultsPage() {
             <div className="relative">
               <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
               
-              <div className="bg-purple-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+              <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
                 {/* Form Header */}
                 <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600"></div>
@@ -605,24 +605,7 @@ export default function DrivingExamResultsPage() {
                   </div>
                 </div>
 
-                {/* Luxury Footer */}
-                <div className="px-8 py-6 border-t border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
-                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                        <span className="text-sm text-slate-600 font-medium">Ready to record</span>
-                      </div>
-                      <div className="hidden md:block w-px h-4 bg-slate-300"></div>
-                      <div className="text-sm text-slate-500">
-                        All exam records are securely stored
-                      </div>
-                    </div>
-                    <div className="text-sm text-slate-500 font-light">
-                      © {new Date().getFullYear()} Driving Academy • Exam Management
-                    </div>
-                  </div>
-                </div>
+                
               </div>
               <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
             </div>
@@ -633,7 +616,7 @@ export default function DrivingExamResultsPage() {
             <div className="relative">
               <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
               
-              <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+              <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
                 <div className="p-12 text-center">
                   <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center mb-6">
                     <Car className="w-12 h-12 text-slate-400" />

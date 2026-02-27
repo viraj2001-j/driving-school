@@ -186,7 +186,7 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
 
   return (
     
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50 p-6 md-10">
+    <div className="min-h-screen  p-6 md-10">
       {/* Luxury Background Pattern - Moved z-index behind everything */}
       <div className="fixed inset-0 pointer-events-none -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
@@ -198,29 +198,33 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
 <div></div>
       <div className="relative max-w-6xl mx-auto z-10">
         {/* Luxury Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
+
+
+
+        {/* Luxury Header */}
+        <div className="mb-10 mt-5 md:mb-16">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-3 h-10 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
+                  <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
                   <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
                     Student Management Portal
                   </h1>
-                  <p className="text-slate-600 mt-1 text-sm font-light">Search and manage student records</p>
+                  <p className="text-slate-600 mt-2 font-light">Search and manage student records</p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-sm border border-slate-200/80">
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
                 <div className="relative">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                   <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>
                 </div>
-                <span className="text-sm font-medium text-slate-700">{selected ? "Record Loaded" : "Ready"}</span>
+                <span className="text-sm font-medium text-slate-700">Student Management Mode</span>
               </div>
             </div>
           </div>
@@ -229,7 +233,7 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
         {/* Main Content - Single Column Layout */}
         <div className="space-y-8 ">
           {/* Search Card */}
-          <div ref={searchRef} className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-visible relative mb-40">
+          <div ref={searchRef} className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-visible relative mb-25">
             <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
               <div className="flex items-center gap-3 pt-1">
@@ -952,7 +956,7 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
             </div>
           ) : (
             /* Empty State */
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
               <div className="p-12 text-center">
                 <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center mb-6">
                   <User className="w-12 h-12 text-slate-400" />
