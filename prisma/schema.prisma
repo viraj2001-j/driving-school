@@ -240,6 +240,8 @@ model StudentApplication {
   // 👇 NEW
   birthdayWishLogs    BirthdayWishLog[]
    examReminderLogs    ExamReminderLog[]
+
+  practiceEligibleLogs PracticeEligibleLog[]
 }
 
 model ExamReminderLog {
@@ -470,4 +472,15 @@ model ExamAttempt {
 
   application    StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
   vehicleClass   VehicleClass?      @relation(fields: [vehicleClassId], references: [id])
+}
+
+model PracticeEligibleLog {
+  id            Int      @id @default(autoincrement())
+  applicationId String
+  eligibleDate  DateTime // date when they turned 18 (store midnight date)
+  sentAt        DateTime @default(now())
+
+  application   StudentApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, eligibleDate]) // ✅ one email per student per eligible day
 }

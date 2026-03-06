@@ -55,6 +55,8 @@ export async function getStudentDetails(id: string) {
       },
       paymentInfo: true,
 
+      paymentRecords: { select: { amount: true } }, // or include + orderBy if you need dates
+
       writtenExams: {
         orderBy: { attemptNo: "asc" },
       },
@@ -133,3 +135,52 @@ export async function getAllVehicleClasses() {
   }
 }
 
+// ✅ Paginated students list for the empty-state table
+export async function getStudentsPage(opts?: {
+  page?: number;
+  pageSize?: number;
+  query?: string; // optional filter
+}) {
+  const page = Math.max(1, Number(opts?.page ?? 1));
+  const pageSize = Math.min(50, Math.max(5, Number(opts?.pageSize ?? 10)));
+  const q = (opts?.query ?? "").trim();
+
+  const where = q
+    ? {
+        OR: [
+          { fullName: { contains: q, mode: "insensitive" } },
+          { nic: { contains: q, mode: "insensitive" } },
+          { phone1: { contains: q, mode: "insensitive" } },
+          { referenceNo: { contains: q, mode: "insensitive" } },
+        ],
+      }
+    : {};
+
+  const [total, rows] = await Promise.all([
+    prisma.studentApplication.count({ where }),
+    prisma.studentApplication.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select: {
+        id: true,
+        referenceNo: true,
+        fullName: true,
+        nic: true,
+        phone1: true,
+        canDriveVehicles: true,
+        createdAt: true,
+        paymentInfo: { select: { status: true } },
+      },
+    }),
+  ]);
+
+  return {
+    page,
+    pageSize,
+    total,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    rows,
+  };
+}

@@ -3,6 +3,8 @@ import AnimatedNumber from "@/components/AnimatedNumber";
 import DashboardCharts from "@/components/DashboardCharts";
 import LiveClock from "@/components/LiveClock";
 
+/* ---------------- Helpers ---------------- */
+
 function formatDate(d: Date) {
   return d.toLocaleDateString("en-GB", {
     day: "2-digit",
@@ -13,11 +15,40 @@ function formatDate(d: Date) {
 
 function formatTime(t?: Date | null) {
   if (!t) return "";
-  return t.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return t.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
+
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// ✅ Handles Feb 29 → Feb 28 in non-leap years when adding years
+function addYearsSafe(date: Date, years: number) {
+  const d = new Date(date);
+  const month = d.getMonth();
+  const day = d.getDate();
+
+  d.setFullYear(d.getFullYear() + years);
+
+  // If month changed, it overflowed (e.g., Feb 29 -> Mar 1). Fix to last day of previous month.
+  if (d.getMonth() !== month || d.getDate() !== day) {
+    d.setDate(0);
+  }
+
+  return d;
+}
+
+function calcAgeFromDob(dob: Date) {
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
+}
+
+/* ---------------- Page ---------------- */
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
@@ -31,20 +62,19 @@ export default async function DashboardPage() {
 
       {/* FULL WIDTH CONTENT */}
       <div className="w-full mx-auto space-y-8">
-        {/* ⭐ PREMIUM HEADER (like Driving Exam page) */}
+        {/* ⭐ PREMIUM HEADER */}
         <div className="mb-10 md:mb-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
             {/* LEFT SIDE TEXT */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
-                {/* Vertical glowing bar */}
                 <div className="relative">
                   <div className="w-3 h-14 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full" />
                   <div className="absolute -inset-1 bg-blue-100/40 blur-md rounded-full" />
                 </div>
 
                 <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900  tracking-tight">
+                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
                     Dashboard Overview
                   </h1>
                   <p className="text-slate-600 dark:text-slate-400 mt-2 font-light">
@@ -54,26 +84,24 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* RIGHT SIDE: SYSTEM STATUS + CLOCK */}
+            {/* RIGHT SIDE */}
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-while backdrop-blur-sm rounded-xl border-slate-300  shadow-sm">
+              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl border border-slate-300 shadow-sm">
                 <div className="relative">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                   <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full" />
                 </div>
-                <span className="text-sm font-medium text-slate-700 ">
+                <span className="text-sm font-medium text-slate-700">
                   System Active
                 </span>
               </div>
 
-              {/* Live date & time */}
               <LiveClock />
             </div>
           </div>
         </div>
 
         {/* 🔵 BLUE OUTER BACKGROUND SECTION */}
-        
         <div className="bg-blue-100/95 rounded-3xl p-8 border border-blue-100 shadow-inner space-y-10">
           {/* KPI Cards – Counts */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -105,6 +133,14 @@ export default async function DashboardPage() {
               value={data.drivingPassedStudents}
               note="Students who passed driving exam"
               accent="indigo"
+            />
+
+            {/* ✅ NEW KPI */}
+            <KpiCard
+              title="18th Birthday Completed"
+              value={data.eligible18Count ?? 0}
+              note="DOB + 18 years is completed"
+              accent="emerald"
             />
           </div>
 
@@ -146,6 +182,9 @@ export default async function DashboardPage() {
               items={data.upcomingDriving}
             />
           </div>
+
+          {/* ✅ NEW: 18th Birthday Completed Students */}
+          <Eligible18List items={data.eligible18Students ?? []} />
 
           {/* Charts Section */}
           <DashboardCharts
@@ -192,7 +231,6 @@ function KpiCard({
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-md p-6 hover:shadow-xl transition-all duration-300">
-      {/* Top accent border */}
       <div
         className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${accentMap}`}
       />
@@ -219,7 +257,6 @@ function ExamList({
 }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
-      {/* Card header */}
       <div className="px-6 py-5 border-b border-slate-200 bg-white">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
@@ -232,7 +269,6 @@ function ExamList({
         </p>
       </div>
 
-      {/* Card body */}
       <div className="p-6 space-y-3">
         {items.length === 0 ? (
           <div className="p-6 text-center rounded-xl border border-slate-200 bg-white text-slate-500 italic">
@@ -262,11 +298,89 @@ function ExamList({
                   </div>
 
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-900">
-                      {date}
-                    </p>
+                    <p className="text-sm font-semibold text-slate-900">{date}</p>
                     <p className="text-xs text-slate-500">{time}</p>
                   </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Eligible18List({ items }: { items: any[] }) {
+  const today = startOfToday();
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
+      <div className="px-6 py-5 border-b border-slate-200 bg-white">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-slate-900">
+            18th Birthday Completed Students
+          </h3>
+          <span className="text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">
+            DOB + 18 Years
+          </span>
+        </div>
+        <p className="text-sm text-slate-500 mt-1">
+          Shows students whose 18th birthday date is completed
+        </p>
+      </div>
+
+      <div className="p-6 space-y-3">
+        {items.length === 0 ? (
+          <div className="p-6 text-center rounded-xl border border-slate-200 bg-white text-slate-500 italic">
+            No 18+ completed students yet
+          </div>
+        ) : (
+          items.map((s: any) => {
+            const dob = new Date(s.dob);
+            const age = calcAgeFromDob(dob);
+
+            const birthday18 = addYearsSafe(dob, 18);
+            birthday18.setHours(0, 0, 0, 0);
+
+            const isCompleted = birthday18 <= today;
+
+            return (
+              <div
+                key={s.id}
+                className="p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 transition"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      {s.referenceNo} • {s.fullName}
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      DOB: {dob.toLocaleDateString("en-GB")} • Age: {age}
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      18th Birthday:{" "}
+                      <span className="font-medium text-slate-700">
+                        {birthday18.toLocaleDateString("en-GB")}
+                      </span>{" "}
+                      • Year:{" "}
+                      <span className="font-medium text-slate-700">
+                        {birthday18.getFullYear()}
+                      </span>
+                    </p>
+                  </div>
+
+                  <span
+                    className={`text-xs font-semibold px-3 py-1 rounded-full border ${
+                      isCompleted
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : "bg-amber-50 text-amber-700 border-amber-200"
+                    }`}
+                  >
+                    {isCompleted ? "18 Completed" : "Not Yet"}
+                  </span>
                 </div>
               </div>
             );

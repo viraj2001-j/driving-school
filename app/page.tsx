@@ -350,8 +350,8 @@ export default function Page() {
             <div className="space-y-6">
               {[
                 { icon: Phone, title: "Phone Support", value: "+94 77 123 4567", sub: "Available 24/7" },
-                { icon: MapPin, title: "Visit Us", value: "Kurunegala, Sri Lanka", sub: "Main Office" },
-                { icon: Clock, title: "Business Hours", value: "Mon - Sat, 8:00 AM - 8:00 PM", sub: "Sunday Closed" }
+                { icon: MapPin, title: "Visit Us", value: "Mathawa", sub: "Main Office" },
+                { icon: Clock, title: "Business Hours", value: "Mon - Sun, 8:00 AM - 6:00 PM", sub: "Poyaday Closed" }
               ].map((item, index) => {
                 const Icon = item.icon;
                 return (
@@ -370,13 +370,18 @@ export default function Page() {
             </div>
 
             {/* Map/Image */}
-            <div className="rounded-3xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-500">
-              <img
-                src="https://images.unsplash.com/photo-1577086664693-894d8405334a?q=80&w=2070"
-                alt="Location"
-                className="w-full h-full object-cover"
-              />
-            </div>
+<div className="rounded-3xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-500">
+  <iframe
+    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d25005.781398380117!2d80.35014621646192!3d7.420460455421089!2m3!1f0!2f0!3f0!2m3!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ae33bf804171cad%3A0x8114db8d82432c3e!2sMathawa!5e0!3m2!1sen!2slk!4v1772718301081!5m2!1sen!2slk"
+    width="600"
+    height="450"
+    style={{ border: 0 }}
+    allowFullScreen
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+    className="w-full h-full"
+  />
+</div>
           </div>
         </div>
       </section>

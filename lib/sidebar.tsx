@@ -73,7 +73,7 @@ const Sidebar = () => {
     <>
       <aside
   className={`fixed top-0 left-0 z-40 h-screen transition-all duration-500 ease-in-out 
-  bg-gradient-to-b from-blue-950 via-blue-200 to-blue-950
+  bg-gray-300
   text-gray-800 shadow-xl border-r border-gray-200 ${
     isCollapsed ? "w-20" : "w-72"
   }`}
@@ -97,12 +97,12 @@ const Sidebar = () => {
           }`}>
             <div className="flex items-center gap-3 mt-8">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-700 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
-                <span className="font-bold text-white text-xl">RL</span>
+                <span className="font-bold text-white text-xl">RDS</span>
               </div>
               {!isCollapsed && (
                 <div className="flex flex-col">
                   <span className="text-xl font-bold tracking-tight text-gray-900">
-                    Randhika<span className="text-indigo-600">Learners</span>
+                    Randika<span className="text-indigo-600">DrivingSChool</span>
                   </span>
                   <span className="text-xs text-gray-500 font-medium">Admin Portal</span>
                 </div>

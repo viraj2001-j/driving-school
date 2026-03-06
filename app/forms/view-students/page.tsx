@@ -3,13 +3,13 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
-import { suggestStudents, getStudentDetails, deleteStudent } from "@/app/actions/studentView";
+import { suggestStudents, getStudentDetails, deleteStudent, getStudentsPage } from "@/app/actions/studentView";
 import EditStudentForm from "@/components/EditStudentForm";
 import {
   User, Bike, IdCard, CreditCard,
   Stethoscope, FileText, Car,
   Search, Calendar, Phone, Mail,
-  MapPin, Trash2, Edit, Eye,
+  MapPin, Trash2, Edit, Eye,  ChevronLeft, 
   ChevronRight, AlertCircle, CheckCircle, Clock
 } from "lucide-react";
 import {
@@ -35,6 +35,24 @@ export default function ViewStudentsPage() {
   const [formData, setFormData] = useState<any>(null);
   const [allClasses, setAllClasses] = useState<any[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const [tablePage, setTablePage] = useState(1);
+const [tableTotalPages, setTableTotalPages] = useState(1);
+const [tableRows, setTableRows] = useState<any[]>([]);
+const [tableLoading, setTableLoading] = useState(false);
+const PAGE_SIZE = 10;
+
+async function loadStudentsTable(page = 1) {
+  setTableLoading(true);
+  try {
+    const res = await getStudentsPage({ page, pageSize: PAGE_SIZE });
+    setTableRows(res.rows);
+    setTablePage(res.page);
+    setTableTotalPages(res.totalPages);
+  } finally {
+    setTableLoading(false);
+  }
+}
 
   const examAttempts: ExamAttemptRow[] = (selected?.examAttempts ?? []).map((a: any) => ({
   ...a,
@@ -122,6 +140,9 @@ const drivingGrouped = groupByVehicleClass(drivingAttempts); // Map<vehicleClass
       if (result.success) {
         toast.success("Student deleted successfully");
         setSelected(null);
+           await loadStudentsTable(1); 
+
+
       } else {
         toast.error("Delete failed: " + result.message);
       }
@@ -180,9 +201,9 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
 }
 
 
-
-    
-
+useEffect(() => {
+  loadStudentsTable(1);
+}, []);
 
   return (
     
@@ -755,7 +776,7 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
                   )}
 
                   {/* Payment Info */}
-                  {selected.paymentInfo && (
+                  {/* {selected.paymentInfo && (
                     <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
                       <div className="flex items-center gap-3 mb-6">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 flex items-center justify-center">
@@ -778,6 +799,9 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
                               <span className="text-slate-900 font-bold">Rs. {selected.paymentInfo.advanceFee.toLocaleString()}</span>
                             </div>
                           </div>
+
+
+                          
                         </div>
                         
                         <div className="space-y-2">
@@ -810,7 +834,136 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
                         </div>
                       </div>
                     </div>
-                  )}
+                  )} */}
+{selected.paymentInfo && (
+  <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200 flex items-center justify-center">
+        <CreditCard className="w-4 h-4 text-amber-600" />
+      </div>
+      <h3 className="text-lg font-semibold text-slate-900">Payment Information</h3>
+    </div>
+
+    {(() => {
+      const totalFee = Number(selected.paymentInfo.totalFee ?? 0);
+      const advanceFee = Number(selected.paymentInfo.advanceFee ?? 0);
+
+      const extraTotal = (selected.paymentRecords ?? []).reduce(
+        (sum: number, r: any) => sum + Number(r.amount ?? 0),
+        0
+      );
+
+      const totalPaid = advanceFee + extraTotal;
+      const due = Math.max(totalFee - totalPaid, 0);
+
+      return (
+        <div className="space-y-4">
+          {/* ✅ 2 columns -> automatically becomes 2 rows */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Total Fee */}
+            <div className="space-y-2">
+              <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+                Total Fee
+              </Label>
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <span className="text-slate-900 font-bold">
+                  Rs. {totalFee.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Advance Fee */}
+            <div className="space-y-2">
+              <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+                Advance Fee
+              </Label>
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
+                <span className="text-slate-900 font-bold">
+                  Rs. {advanceFee.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Total Paid */}
+            <div className="space-y-2">
+              <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+                Total Paid
+              </Label>
+              <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                <span className="text-emerald-800 font-bold">
+                  Rs. {totalPaid.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Pending */}
+            <div className="space-y-2">
+              <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+                Pending Amount
+              </Label>
+              <div
+                className={`p-3 rounded-lg border ${
+                  due === 0
+                    ? "bg-emerald-50 border-emerald-200"
+                    : "bg-red-50 border-red-200"
+                }`}
+              >
+                <span className={`font-bold ${due === 0 ? "text-emerald-800" : "text-red-800"}`}>
+                  Rs. {due.toLocaleString()}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Status row */}
+          <div className="space-y-2">
+            <Label className="text-slate-500 text-xs font-medium uppercase tracking-wider">
+              Payment Status
+            </Label>
+
+            <div
+              className={`p-3 rounded-lg border flex items-center justify-between ${
+                selected.paymentInfo.status === "PAID"
+                  ? "bg-emerald-50 border-emerald-200"
+                  : selected.paymentInfo.status === "PARTIAL"
+                  ? "bg-amber-50 border-amber-200"
+                  : "bg-slate-50 border-slate-200"
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {selected.paymentInfo.status === "PAID" ? (
+                  <CheckCircle className="w-5 h-5 text-emerald-600" />
+                ) : selected.paymentInfo.status === "PARTIAL" ? (
+                  <Clock className="w-5 h-5 text-amber-600" />
+                ) : (
+                  <AlertCircle className="w-5 h-5 text-slate-600" />
+                )}
+
+                <span
+                  className={`font-bold ${
+                    selected.paymentInfo.status === "PAID"
+                      ? "text-emerald-800"
+                      : selected.paymentInfo.status === "PARTIAL"
+                      ? "text-amber-800"
+                      : "text-slate-800"
+                  }`}
+                >
+                  {selected.paymentInfo.status}
+                </span>
+              </div>
+
+              <span className="text-sm text-slate-600">
+                {selected.paymentInfo.paidDate
+                  ? `Paid on ${new Date(selected.paymentInfo.paidDate).toLocaleDateString("en-GB")}`
+                  : "No payments yet"}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    })()}
+  </div>
+)}
 
                   {/* Written Exam */}
 <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-lg shadow-slate-200/30 border border-slate-200/80 p-6">
@@ -956,21 +1109,16 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
             </div>
           ) : (
             /* Empty State */
-            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-              <div className="p-12 text-center">
-                <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center mb-6">
-                  <User className="w-12 h-12 text-slate-400" />
-                </div>
-                <h3 className="text-2xl font-semibold text-slate-900 mb-3">No Student Selected</h3>
-                <p className="text-slate-600 max-w-lg mx-auto mb-8">
-                  Search for a student using their name, NIC number, or phone number to view their complete profile and manage their records.
-                </p>
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
-                  <Search className="w-4 h-4 text-slate-500" />
-                  <span className="text-sm text-slate-600">Start typing in the search bar above</span>
-                </div>
-              </div>
-            </div>
+<AllStudentsTable
+  rows={tableRows}
+  loading={tableLoading}
+  page={tablePage}
+  totalPages={tableTotalPages}
+  onRefresh={() => loadStudentsTable(tablePage)}
+  onPrev={() => loadStudentsTable(Math.max(1, tablePage - 1))}
+  onNext={() => loadStudentsTable(Math.min(tableTotalPages, tablePage + 1))}
+  onView={(id) => handleSelect(id)}
+/>
           )}
         </div>
       </div>
@@ -1007,5 +1155,157 @@ function groupByVehicleClass(attempts: ExamAttemptRow[]) {
       </Dialog>
     </div>
     
+  );
+}
+
+function AllStudentsTable({
+  rows,
+  loading,
+  page,
+  totalPages,
+  onPrev,
+  onNext,
+  onRefresh,
+  onView,
+}: {
+  rows: any[];
+  loading: boolean;
+  page: number;
+  totalPages: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onRefresh: () => void;
+  onView: (id: string) => void;
+}) {
+  return (
+    <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+      <div className="p-8">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h3 className="text-2xl font-semibold text-slate-900">All Students</h3>
+            <p className="text-slate-600 mt-1">
+              Select a student from the table to view full details.
+            </p>
+          </div>
+
+          <Button
+            variant="outline"
+            className="border-slate-300"
+            onClick={onRefresh}
+            disabled={loading}
+          >
+            {loading ? "Loading..." : "Refresh"}
+          </Button>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr className="text-left">
+                  <th className="px-4 py-3 font-semibold text-slate-700">Ref</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Name</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">NIC</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Phone</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Payment</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Can Drive</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700 text-right">Action</th>
+                </tr>
+              </thead>
+
+              <tbody className="divide-y divide-slate-200">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                      Loading students...
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-10 text-center text-slate-500">
+                      No students found.
+                    </td>
+                  </tr>
+                ) : (
+                  rows.map((s) => (
+                    <tr key={s.id} className="hover:bg-slate-50 transition">
+                      <td className="px-4 py-3 text-slate-700 font-medium">{s.referenceNo}</td>
+                      <td className="px-4 py-3 text-slate-900 font-semibold">{s.fullName}</td>
+                      <td className="px-4 py-3 text-slate-700">{s.nic}</td>
+                      <td className="px-4 py-3 text-slate-700">{s.phone1}</td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            (s.paymentInfo?.status ?? "PENDING") === "PAID"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : (s.paymentInfo?.status ?? "PENDING") === "PARTIAL"
+                              ? "bg-amber-50 text-amber-700 border-amber-200"
+                              : "bg-slate-50 text-slate-700 border-slate-200"
+                          }`}
+                        >
+                          {s.paymentInfo?.status ?? "PENDING"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${
+                            s.canDriveVehicles
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                              : "bg-red-50 text-red-700 border-red-200"
+                          }`}
+                        >
+                          {s.canDriveVehicles ? "YES" : "NO"}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 text-right">
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-blue-600 to-blue-500 text-white"
+                          onClick={() => onView(s.id)}
+                        >
+                          View
+                        </Button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200 bg-white">
+            <div className="text-xs text-slate-500">
+              Page <span className="font-semibold text-slate-700">{page}</span> of{" "}
+              <span className="font-semibold text-slate-700">{totalPages}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="border-slate-300"
+                onClick={onPrev}
+                disabled={loading || page <= 1}
+              >
+                <ChevronLeft className="w-4 h-4 mr-1" />
+                Prev
+              </Button>
+
+              <Button
+                variant="outline"
+                className="border-slate-300"
+                onClick={onNext}
+                disabled={loading || page >= totalPages}
+              >
+                Next
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
