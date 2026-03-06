@@ -125,3 +125,54 @@
       @apply bg-background text-foreground;
     }
   } */
+
+@tailwind utilities;
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent very large desktop stretching */
+.page-shell {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+}
+
+/* Better responsive spacing */
+.page-content {
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .page-content {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .page-content {
+    padding: 24px;
+  }
+}
