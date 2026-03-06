@@ -387,7 +387,7 @@ export default function Page() {
       </section>
 
       {/* ================= FOOTER ================= */}
-      <footer className="bg-gray-900 text-gray-400 py-12 px-4">
+      {/* <footer className="bg-gray-600 text-gray-400 py-12 px-4">
         
           <div className="grid md:grid-cols-4 gap-8 mb-8">
            
@@ -400,7 +400,31 @@ export default function Page() {
             <span className="block md:inline md:ml-2">All Rights Reserved.</span>
           </div>
         </div>
-      </footer>
+      </footer> */}
+
+
+      <footer className="relative z-20 bg-[#606477] bg-none border-t border-gray-800 py-6">
+    <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-2 md:gap-0">
+      
+      <p className="text-gray-400 text-sm">
+        © {new Date().getFullYear()}{" "}
+        <span className="font-semibold text-gray-100">
+          Randhika Learners
+        </span>. All rights reserved.
+      </p>
+
+      <p className="text-gray-400 text-sm flex items-center gap-1">
+        Designed & Developed by
+        <img
+          src="/VRJ_Logo.png"
+          alt="VRJ Logo"
+          className="inline-block w-5 h-5 ml-1 transition-transform duration-300 hover:scale-110"
+        />
+        <span className="font-semibold text-gray-100 ml-1">VRJ</span>
+      </p>
+
+    </div>
+  </footer>
 
       <style jsx>{`
         @keyframes slow-zoom {

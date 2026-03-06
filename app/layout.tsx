@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           {/* ✅ Hide Footer on Login + Signup */}
 {!hideSidebar && (
-  <footer className="relative z-20 bg-[#050c2e] bg-none border-t border-gray-800 py-6">
+  <footer className="relative z-20 bg-[#606477] bg-none border-t border-gray-800 py-6">
     <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between text-center md:text-left gap-2 md:gap-0">
       
       <p className="text-gray-400 text-sm">
