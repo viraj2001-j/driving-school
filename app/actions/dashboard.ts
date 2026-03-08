@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/db";
+import { unstable_noStore as noStore } from "next/cache";
 
 function startOfToday() {
   const d = new Date();
@@ -15,20 +16,18 @@ function addYears(d: Date, years: number) {
 }
 
 export async function getDashboardData() {
+  noStore();
+
   const today = startOfToday();
 
-  // ✅ DOB cutoff for age >= 18
-  const dobCutoff18 = addYears(today, -18); // born on or before this date => age 18+
+  const dobCutoff18 = addYears(today, -18);
 
-  // Students
   const totalStudents = await prisma.studentApplication.count();
 
-  // ✅ 18+ students count
   const eligible18Count = await prisma.studentApplication.count({
     where: { dob: { lte: dobCutoff18 } },
   });
 
-  // ✅ Show list (latest created first or oldest first - choose one)
   const eligible18Students = await prisma.studentApplication.findMany({
     where: { dob: { lte: dobCutoff18 } },
     orderBy: { createdAt: "desc" },
@@ -42,12 +41,10 @@ export async function getDashboardData() {
     },
   });
 
-  // Payment status counts
   const paidCount = await prisma.paymentInfo.count({ where: { status: "PAID" } });
   const pendingCount = await prisma.paymentInfo.count({ where: { status: "PENDING" } });
   const partialCount = await prisma.paymentInfo.count({ where: { status: "PARTIAL" } });
 
-  // ✅ Payment totals using PaymentRecord + advanceFee (correct)
   const [infos, recordsAgg] = await Promise.all([
     prisma.paymentInfo.findMany({
       select: { applicationId: true, totalFee: true, advanceFee: true, status: true },
@@ -61,7 +58,6 @@ export async function getDashboardData() {
   const extraMap = new Map<string, number>();
   for (const r of recordsAgg) extraMap.set(r.applicationId, Number(r._sum.amount ?? 0));
 
-  // totals for charts/cards
   let paidTotal = 0;
   let pendingBalanceTotal = 0;
   let partialBalanceTotal = 0;
@@ -82,7 +78,6 @@ export async function getDashboardData() {
 
   const totalToPay = pendingBalanceTotal + partialBalanceTotal;
 
-  // Driving PASSED student count (unique applications) using BOTH tables
   const passFromAttempts = await prisma.examAttempt.findMany({
     where: { examType: "DRIVING", result: "PASS" },
     distinct: ["applicationId"],
@@ -100,7 +95,6 @@ export async function getDashboardData() {
   passFromDrivingResults.forEach((r) => passedSet.add(r.applicationId));
   const drivingPassedStudents = passedSet.size;
 
-  // Upcoming exam attempts
   const upcoming = await prisma.examAttempt.findMany({
     where: { examDate: { gte: today } },
     orderBy: [{ examDate: "asc" }, { examTime: "asc" }, { attemptNo: "asc" }],
@@ -127,22 +121,16 @@ export async function getDashboardData() {
 
   return {
     totalStudents,
-
     paidCount,
     pendingCount,
     partialCount,
-
     paidTotal,
     pendingBalanceTotal,
     partialBalanceTotal,
     totalToPay,
-
     drivingPassedStudents,
-
     upcomingWritten,
     upcomingDriving,
-
-    // ✅ new
     eligible18Count,
     eligible18Students,
   };

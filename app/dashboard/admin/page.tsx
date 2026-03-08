@@ -2,8 +2,11 @@ import { getDashboardData } from "@/app/actions/dashboard";
 import AnimatedNumber from "@/components/AnimatedNumber";
 import DashboardCharts from "@/components/DashboardCharts";
 import LiveClock from "@/components/LiveClock";
+import { unstable_noStore as noStore } from "next/cache";
 
 /* ---------------- Helpers ---------------- */
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function formatDate(d: Date) {
   return d.toLocaleDateString("en-GB", {
@@ -51,7 +54,10 @@ function calcAgeFromDob(dob: Date) {
 /* ---------------- Page ---------------- */
 
 export default async function DashboardPage() {
+  noStore();
   const data = await getDashboardData();
+
+  
 
   return (
     <div className="min-h-screen p-6 md:p-10">
