@@ -33,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <p className="text-gray-400 text-sm">
         © {new Date().getFullYear()}{" "}
         <span className="font-semibold text-gray-100">
-          Randhika Learners
+          Randika Learners
         </span>. All rights reserved.
       </p>
 

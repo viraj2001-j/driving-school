@@ -73,7 +73,7 @@ const Sidebar = () => {
     <>
       <aside
   className={`fixed top-0 left-0 z-40 h-screen transition-all duration-500 ease-in-out 
-  bg-gray-300
+  bg-gray-500
   text-gray-800 shadow-xl border-r border-gray-200 ${
     isCollapsed ? "w-20" : "w-72"
   }`}

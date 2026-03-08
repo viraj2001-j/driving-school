@@ -2437,6 +2437,854 @@
 // }
 
 
+// "use client";
+
+// import { useEffect, useState, useMemo } from "react";
+// import {
+//   getUsers,
+//   createUser,
+//   updateUser,
+//   deleteUser,
+//   type RoleType,
+//   type UserDTO,
+// } from "@/app/actions/editLogin";
+// import { toast } from "sonner";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogHeader,
+//   DialogTitle,
+// } from "@/components/ui/dialog";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
+// import { Badge } from "@/components/ui/badge";
+// import {
+//   Users,
+//   ShieldCheck,
+//   UserCog,
+//   UserCircle2,
+//   Search,
+//   Filter,
+//   Sparkles,
+//   UserPlus,
+//   Clock,
+//   Calendar,
+//   Shield,
+//   Key,
+//   Mail,
+//   User,
+//   MoreVertical,
+//   Edit,
+//   Trash2,
+//   Eye,
+//   EyeOff,
+//   AlertCircle,
+//   Activity,
+//   TrendingUp,
+//   Award,
+//   Zap,
+//   RefreshCw,
+//   ChevronRight,
+// } from "lucide-react";
+// import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
+// type UserItem = UserDTO;
+
+// // Role configuration
+// const roleConfig: Record<RoleType, { 
+//   color: string; 
+//   bgColor: string; 
+//   icon: any; 
+//   label: string;
+//   textColor: string;
+// }> = {
+//   SUPERADMIN: {
+//     color: "text-rose-600",
+//     bgColor: "bg-rose-100",
+//     icon: Shield,
+//     label: "Super Administrator",
+//     textColor: "text-rose-700",
+//   },
+//   ADMIN: {
+//     color: "text-blue-600",
+//     bgColor: "bg-blue-100",
+//     icon: UserCog,
+//     label: "Administrator",
+//     textColor: "text-blue-700",
+//   },
+//   RECEPTION: {
+//     color: "text-emerald-600",
+//     bgColor: "bg-emerald-100",
+//     icon: UserCircle2,
+//     label: "Reception Staff",
+//     textColor: "text-emerald-700",
+//   },
+//   INSTRUCTOR: {
+//     color: "text-purple-600",
+//     bgColor: "bg-purple-100",
+//     icon: Award,
+//     label: "Instructor",
+//     textColor: "text-purple-700",
+//   },
+// };
+
+// function getInitials(name: string) {
+//   return name
+//     .split(' ')
+//     .map(word => word[0])
+//     .join('')
+//     .toUpperCase()
+//     .slice(0, 2);
+// }
+
+// function RoleBadge({ role, showLabel = false }: { role: RoleType; showLabel?: boolean }) {
+//   const config = roleConfig[role];
+//   const Icon = config.icon;
+  
+//   return (
+//     <Badge 
+//       variant="outline" 
+//       className={`${config.bgColor} ${config.textColor} border-0 font-medium gap-1 px-2 py-0.5`}
+//     >
+//       <Icon className="h-3 w-3" />
+//       {showLabel ? config.label : role}
+//     </Badge>
+//   );
+// }
+
+// export default function UsersPage() {
+//   const [users, setUsers] = useState<UserItem[]>([]);
+//   const [loading, setLoading] = useState(false);
+//   const [refreshing, setRefreshing] = useState(false);
+//   const [newName, setNewName] = useState("");
+//   const [newUsername, setNewUsername] = useState("");
+//   const [newPassword, setNewPassword] = useState("");
+//   const [newRole, setNewRole] = useState<RoleType>("RECEPTION");
+//   const [showPassword, setShowPassword] = useState(false);
+//   const [editOpen, setEditOpen] = useState(false);
+//   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
+//   const [editName, setEditName] = useState("");
+//   const [editUsername, setEditUsername] = useState("");
+//   const [editPassword, setEditPassword] = useState("");
+//   const [editRole, setEditRole] = useState<RoleType>("RECEPTION");
+//   const [showEditPassword, setShowEditPassword] = useState(false);
+//   const [search, setSearch] = useState("");
+//   const [roleFilter, setRoleFilter] = useState<RoleType | "ALL">("ALL");
+//   const [activeTab, setActiveTab] = useState<"all" | "recent">("all");
+
+//   useEffect(() => {
+//     loadUsers();
+//   }, []);
+
+//   const loadUsers = async (showRefreshToast = false) => {
+//     if (showRefreshToast) setRefreshing(true);
+//     setLoading(true);
+//     try {
+//       const data = await getUsers();
+//       setUsers(data);
+//       if (showRefreshToast) toast.success("Users refreshed");
+//     } catch (e) {
+//       console.error(e);
+//       toast.error("Failed to load users");
+//     } finally {
+//       setLoading(false);
+//       setRefreshing(false);
+//     }
+//   };
+
+//   const countByRole = (role: RoleType) => users.filter((u) => u.role === role).length;
+  
+//   const stats = useMemo(() => ({
+//     total: users.length,
+//     superadmin: countByRole("SUPERADMIN"),
+//     admin: countByRole("ADMIN"),
+//     reception: countByRole("RECEPTION"),
+//     instructor: countByRole("INSTRUCTOR"),
+//     recent: users.filter(u => {
+//       const daysSinceCreation = (Date.now() - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+//       return daysSinceCreation <= 7;
+//     }).length,
+//   }), [users]);
+
+//   const latestUser = useMemo(() => users[0] || null, [users]);
+
+//   const filteredUsers = useMemo(() => {
+//     const term = search.trim().toLowerCase();
+    
+//     let filtered = users.filter((u) => {
+//       const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
+//       const matchesSearch = !term ||
+//         u.name.toLowerCase().includes(term) ||
+//         u.username.toLowerCase().includes(term);
+//       return matchesRole && matchesSearch;
+//     });
+
+//     if (activeTab === "recent") {
+//       const sevenDaysAgo = new Date();
+//       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+//       filtered = filtered.filter(u => new Date(u.createdAt) >= sevenDaysAgo);
+//     }
+
+//     return filtered;
+//   }, [users, search, roleFilter, activeTab]);
+
+//   const handleCreate = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     const res = await createUser({
+//       name: newName.trim(),
+//       username: newUsername.trim(),
+//       password: newPassword,
+//       role: newRole,
+//     });
+
+//     if (!res.success) {
+//       toast.error(res.message ?? "Failed to create user");
+//       return;
+//     }
+
+//     toast.success("User created successfully");
+//     await loadUsers();
+    
+//     setNewName("");
+//     setNewUsername("");
+//     setNewPassword("");
+//     setNewRole("RECEPTION");
+//   };
+
+//   const openEdit = (user: UserItem) => {
+//     setEditingUser(user);
+//     setEditName(user.name);
+//     setEditUsername(user.username);
+//     setEditPassword("");
+//     setEditRole(user.role);
+//     setEditOpen(true);
+//   };
+
+//   const handleUpdate = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     if (!editingUser) return;
+
+//     const res = await updateUser(editingUser.id, {
+//       name: editName.trim(),
+//       username: editUsername.trim(),
+//       password: editPassword.trim() || undefined,
+//       role: editRole,
+//     });
+
+//     if (!res.success) {
+//       toast.error(res.message ?? "Failed to update user");
+//       return;
+//     }
+
+//     toast.success("User updated successfully");
+//     await loadUsers();
+//     setEditOpen(false);
+//   };
+
+//   const handleDelete = async (id: string) => {
+//     if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) return;
+
+//     const res = await deleteUser(id);
+//     if (!res.success) {
+//       toast.error(res.message ?? "Failed to delete user");
+//       return;
+//     }
+
+//     toast.success("User deleted successfully");
+//     setUsers((prev) => prev.filter((u) => u.id !== id));
+//   };
+
+//   return (
+//     <div className="min-h-screen  p-6 md:p-10">
+//       {/* Luxury Background Pattern */}
+//       <div className="fixed inset-0 pointer-events-none">
+//         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
+//         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(37,99,235,0.03)_0%,transparent_50%)]"></div>
+//         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.02)_0%,transparent_50%)]"></div>
+//         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+//         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+//       </div>
+
+//       <div className="relative max-w-7xl mx-auto">
+//         {/* Luxury Header */}
+//         <div className="mb-10 md:mb-16">
+//           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+//             <div className="space-y-4">
+//               <div className="flex items-center gap-4">
+//                 <div className="relative">
+//                   <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
+//                   <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
+//                 </div>
+//                 <div>
+//                   <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+//                     User Management
+//                   </h1>
+//                   <p className="text-slate-600 mt-2 font-light flex items-center gap-2">
+//                     <Sparkles className="h-4 w-4 text-blue-400" />
+//                     Manage system access and user roles
+//                   </p>
+//                 </div>
+//               </div>
+//             </div>
+//             <div className="flex items-center gap-4">
+//               <Button
+//                 variant="outline"
+//                 size="icon"
+//                 onClick={() => loadUsers(true)}
+//                 disabled={refreshing}
+//                 className="relative bg-white border-slate-300 text-slate-700 hover:bg-slate-50 h-10 w-10 rounded-xl"
+//               >
+//                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+//               </Button>
+//               <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
+//                 <div className="relative">
+//                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+//                   <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>
+//                 </div>
+//                 <span className="text-sm font-medium text-slate-700">
+//                   {loading ? 'Loading...' : `${users.length} Active Users`}
+//                 </span>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Main Content */}
+//         <div className="space-y-8">
+//           {/* Section 1: Stats Overview */}
+//           <div className="relative">
+//             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+            
+//             <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+//               {/* Stats Header */}
+//               <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
+//                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
+//                 <div className="flex items-center justify-between pt-2">
+//                   <div className="flex items-center gap-4">
+//                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-sm">
+//                       <Activity className="w-4 h-4 text-white" />
+//                     </div>
+//                     <div>
+//                       <h2 className="text-xl font-semibold text-slate-900">System Overview</h2>
+//                       <p className="text-sm text-slate-500">User statistics and metrics</p>
+//                     </div>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Stats Grid */}
+//               <div className="p-8 md:p-10">
+//                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-6">
+//                   {/* Total Users */}
+//                   <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-all">
+//                     <div className="flex items-center justify-between mb-4">
+//                       <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+//                         <Users className="w-5 h-5 text-blue-600" />
+//                       </div>
+//                       <Badge className="bg-blue-100 text-blue-700 border-0">
+//                         {stats.recent} new
+//                       </Badge>
+//                     </div>
+//                     <p className="text-sm text-slate-500 mb-1">Total Users</p>
+//                     <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
+//                     <div className="mt-3 flex items-center gap-1 text-xs text-emerald-600">
+//                       <TrendingUp className="w-3 h-3" />
+//                       <span>+{stats.recent} this week</span>
+//                     </div>
+//                   </div>
+
+//                   {/* Super Admin */}
+//                   <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
+//                     <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center mb-4">
+//                       <ShieldCheck className="w-5 h-5 text-rose-600" />
+//                     </div>
+//                     <p className="text-sm text-slate-500 mb-1">Super Admin</p>
+//                     <p className="text-3xl font-bold text-rose-600">{stats.superadmin}</p>
+//                   </div>
+
+//                   {/* Admin */}
+//                   <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
+//                     <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
+//                       <UserCog className="w-5 h-5 text-blue-600" />
+//                     </div>
+//                     <p className="text-sm text-slate-500 mb-1">Admin</p>
+//                     <p className="text-3xl font-bold text-blue-600">{stats.admin}</p>
+//                   </div>
+
+//                   {/* Reception */}
+//                   <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
+//                     <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-4">
+//                       <UserCircle2 className="w-5 h-5 text-emerald-600" />
+//                     </div>
+//                     <p className="text-sm text-slate-500 mb-1">Reception</p>
+//                     <p className="text-3xl font-bold text-emerald-600">{stats.reception}</p>
+//                   </div>
+
+//                   {/* Instructor */}
+//                   <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
+//                     <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
+//                       <Award className="w-5 h-5 text-purple-600" />
+//                     </div>
+//                     <p className="text-sm text-slate-500 mb-1">Instructor</p>
+//                     <p className="text-3xl font-bold text-purple-600">{stats.instructor}</p>
+//                   </div>
+
+//                   {/* Activity */}
+//                   <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
+//                     <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center mb-4">
+//                       <Activity className="w-5 h-5 text-amber-600" />
+//                     </div>
+//                     <p className="text-sm text-slate-500 mb-1">Activity</p>
+//                     <p className="text-3xl font-bold text-amber-600">
+//                       {Math.round((stats.recent / Math.max(stats.total, 1)) * 100)}%
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 {/* Latest User Banner */}
+//                 {latestUser && (
+//                   <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-4">
+//                     <div className="flex items-center justify-between">
+//                       <div className="flex items-center gap-3">
+//                         <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+//                           <Zap className="w-5 h-5 text-blue-600" />
+//                         </div>
+//                         <div>
+//                           <p className="text-xs text-slate-500">Latest User Joined</p>
+//                           <div className="flex items-center gap-2">
+//                             <span className="font-semibold text-slate-900">{latestUser.name}</span>
+//                             <RoleBadge role={latestUser.role} />
+//                           </div>
+//                         </div>
+//                       </div>
+//                       <div className="flex items-center gap-2 text-sm text-slate-500">
+//                         <Clock className="w-4 h-4 text-blue-400" />
+//                         <span>{new Date(latestUser.createdAt).toLocaleDateString()}</span>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 )}
+//               </div>
+//             </div>
+//             <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+//           </div>
+
+//           {/* Section 2: Create New User */}
+//           <div className="relative">
+//             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
+            
+//             <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+//               {/* Form Header */}
+//               <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
+//                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600"></div>
+//                 <div className="flex items-center gap-4 pt-2">
+//                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-500 flex items-center justify-center shadow-sm">
+//                     <UserPlus className="w-4 h-4 text-white" />
+//                   </div>
+//                   <div>
+//                     <h2 className="text-xl font-semibold text-slate-900">Create New User</h2>
+//                     <p className="text-sm text-slate-500">Add a new user account to the system</p>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Form Content */}
+//               <div className="p-8 md:p-10">
+//                 <form onSubmit={handleCreate} className="space-y-6">
+//                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+//                     {/* Full Name */}
+//                     <div className="space-y-2">
+//                       <Label className="text-slate-700 font-medium flex items-center gap-1">
+//                         <User className="w-4 h-4 text-blue-400" />
+//                         Full Name
+//                         <span className="text-red-500">*</span>
+//                       </Label>
+//                       <Input
+//                         value={newName}
+//                         onChange={(e) => setNewName(e.target.value)}
+//                         placeholder="John Doe"
+//                         required
+//                         className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-11 rounded-xl transition-all"
+//                       />
+//                     </div>
+
+//                     {/* Username */}
+//                     <div className="space-y-2">
+//                       <Label className="text-slate-700 font-medium flex items-center gap-1">
+//                         <Mail className="w-4 h-4 text-blue-400" />
+//                         Username
+//                         <span className="text-red-500">*</span>
+//                       </Label>
+//                       <Input
+//                         value={newUsername}
+//                         onChange={(e) => setNewUsername(e.target.value)}
+//                         placeholder="johndoe"
+//                         required
+//                         className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-11 rounded-xl transition-all"
+//                       />
+//                     </div>
+
+//                     {/* Password */}
+//                     <div className="space-y-2">
+//                       <Label className="text-slate-700 font-medium flex items-center gap-1">
+//                         <Key className="w-4 h-4 text-blue-400" />
+//                         Password
+//                         <span className="text-red-500">*</span>
+//                       </Label>
+//                       <div className="relative">
+//                         <Input
+//                           type={showPassword ? "text" : "password"}
+//                           value={newPassword}
+//                           onChange={(e) => setNewPassword(e.target.value)}
+//                           placeholder="••••••••"
+//                           required
+//                           className="pr-10 bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-11 rounded-xl transition-all"
+//                         />
+//                         <Button
+//                           type="button"
+//                           variant="ghost"
+//                           size="sm"
+//                           className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 p-0 text-slate-400 hover:text-slate-600"
+//                           onClick={() => setShowPassword(!showPassword)}
+//                         >
+//                           {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+//                         </Button>
+//                       </div>
+//                     </div>
+
+//                     {/* Role */}
+//                     <div className="space-y-2">
+//                       <Label className="text-slate-700 font-medium flex items-center gap-1">
+//                         <Shield className="w-4 h-4 text-blue-400" />
+//                         Role
+//                         <span className="text-red-500">*</span>
+//                       </Label>
+//                       <Select value={newRole} onValueChange={(v: RoleType) => setNewRole(v)}>
+//                         <SelectTrigger className="bg-white border-slate-300 text-slate-900 h-11 rounded-xl">
+//                           <SelectValue />
+//                         </SelectTrigger>
+//                         <SelectContent className="bg-blue-100/95">
+//                           {Object.entries(roleConfig).map(([role, config]) => (
+//                             <SelectItem key={role} value={role}>
+//                               <div className="flex items-center gap-2 ">
+//                                 <config.icon className="h-4 w-4" />
+//                                 {config.label}
+//                               </div>
+//                             </SelectItem>
+//                           ))}
+//                         </SelectContent>
+//                       </Select>
+//                     </div>
+//                   </div>
+
+//                   <div className="flex justify-end">
+//                     <Button
+//                       type="submit"
+//                       className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold px-8 py-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
+//                     >
+//                       <UserPlus className="w-5 h-5 mr-2" />
+//                       Create User Account
+//                     </Button>
+//                   </div>
+//                 </form>
+//               </div>
+//             </div>
+//             <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
+//           </div>
+
+//           {/* Section 3: User Management */}
+//           <div className="relative">
+//             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+            
+//             <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+//               {/* Header with Filters */}
+//               <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
+//                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600"></div>
+//                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
+//                   <div className="flex items-center gap-4">
+//                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center shadow-sm">
+//                       <Users className="w-4 h-4 text-white" />
+//                     </div>
+//                     <div>
+//                       <h2 className="text-xl font-semibold text-slate-900">User Management</h2>
+//                       <p className="text-sm text-slate-500">View and manage system users</p>
+//                     </div>
+//                   </div>
+
+//                   {/* Tabs */}
+//                   <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
+//                     <Button
+//                       variant={activeTab === "all" ? "default" : "ghost"}
+//                       size="sm"
+//                       onClick={() => setActiveTab("all")}
+//                       className={activeTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}
+//                     >
+//                       <Users className="w-4 h-4 mr-2" />
+//                       All Users
+//                     </Button>
+//                     <Button
+//                       variant={activeTab === "recent" ? "default" : "ghost"}
+//                       size="sm"
+//                       onClick={() => setActiveTab("recent")}
+//                       className={activeTab === "recent" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}
+//                     >
+//                       <Clock className="w-4 h-4 mr-2" />
+//                       Recent (7 days)
+//                     </Button>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Filters */}
+//               <div className="px-8 py-4 border-b border-slate-100 bg-slate-50/50">
+//                 <div className="flex flex-col sm:flex-row gap-4">
+//                   <div className="relative flex-1">
+//                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+//                     <Input
+//                       value={search}
+//                       onChange={(e) => setSearch(e.target.value)}
+//                       placeholder="Search by name or username..."
+//                       className="pl-9 bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 h-10 rounded-lg"
+//                     />
+//                   </div>
+//                   <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as RoleType | "ALL")}>
+//                     <SelectTrigger className="w-full sm:w-[180px] bg-white border-slate-300 text-slate-900 h-10 rounded-lg">
+//                       <Filter className="w-4 h-4 mr-2 text-slate-400" />
+//                       <SelectValue placeholder="Filter by role" />
+//                     </SelectTrigger>
+//                     <SelectContent>
+//                       <SelectItem value="ALL">All Roles</SelectItem>
+//                       {Object.entries(roleConfig).map(([role, config]) => (
+//                         <SelectItem key={role} value={role}>
+//                           <div className="flex items-center gap-2">
+//                             <config.icon className="h-4 w-4" />
+//                             {config.label}
+//                           </div>
+//                         </SelectItem>
+//                       ))}
+//                     </SelectContent>
+//                   </Select>
+//                 </div>
+//               </div>
+
+//               {/* Users List */}
+//               <div className="p-8 md:p-10">
+//                 {users.length === 0 ? (
+//                   <div className="text-center py-12">
+//                     <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
+//                       <Users className="w-10 h-10 text-slate-400" />
+//                     </div>
+//                     <h3 className="text-lg font-semibold text-slate-900 mb-2">No Users Found</h3>
+//                     <p className="text-slate-500">Create your first user account to get started.</p>
+//                   </div>
+//                 ) : filteredUsers.length === 0 ? (
+//                   <div className="text-center py-12">
+//                     <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
+//                       <AlertCircle className="w-10 h-10 text-slate-400" />
+//                     </div>
+//                     <h3 className="text-lg font-semibold text-slate-900 mb-2">No Matches Found</h3>
+//                     <p className="text-slate-500">Try adjusting your search or filter criteria.</p>
+//                   </div>
+//                 ) : (
+//                   <div className="grid gap-4">
+//                     {filteredUsers.map((user) => (
+//                       <div
+//                         key={user.id}
+//                         className="group bg-white border border-slate-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:border-purple-200"
+//                       >
+//                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+//                           <div className="flex items-start gap-4">
+//                             <Avatar className="h-14 w-14 border-2 border-purple-200">
+//                               <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-500 text-white text-lg">
+//                                 {getInitials(user.name)}
+//                               </AvatarFallback>
+//                             </Avatar>
+//                             <div>
+//                               <h3 className="font-semibold text-lg text-slate-900">{user.name}</h3>
+//                               <div className="flex flex-wrap items-center gap-3 mt-1">
+//                                 <code className="px-2 py-1 bg-slate-100 rounded-md text-xs text-slate-600 font-mono">
+//                                   {user.username}
+//                                 </code>
+//                                 <RoleBadge role={user.role} showLabel />
+//                                 <div className="flex items-center gap-1 text-xs text-slate-500">
+//                                   <Calendar className="w-3 h-3" />
+//                                   {new Date(user.createdAt).toLocaleDateString()}
+//                                 </div>
+//                               </div>
+//                             </div>
+//                           </div>
+
+//                           <div className="flex items-center gap-2 pl-16 sm:pl-0">
+//                             <Button
+//                               variant="ghost"
+//                               size="sm"
+//                               onClick={() => openEdit(user)}
+//                               className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+//                             >
+//                               <Edit className="w-4 h-4 mr-1" />
+//                               Edit
+//                             </Button>
+//                             <Button
+//                               variant="ghost"
+//                               size="sm"
+//                               onClick={() => handleDelete(user.id)}
+//                               className="text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+//                             >
+//                               <Trash2 className="w-4 h-4 mr-1" />
+//                               Delete
+//                             </Button>
+//                             <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-400 transition-colors" />
+//                           </div>
+//                         </div>
+//                       </div>
+//                     ))}
+//                   </div>
+//                 )}
+//               </div>
+
+//               {/* Footer */}
+             
+//             </div>
+//             <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+//           </div>
+//         </div>
+//       </div>
+
+//       {/* Edit Dialog */}
+//       <Dialog open={editOpen} onOpenChange={setEditOpen}>
+//         <DialogContent className="sm:max-w-[525px] bg-white/95 backdrop-blur-sm border-slate-200/80 shadow-2xl">
+//           <DialogHeader>
+//             <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+//               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-lg">
+//                 <Edit className="w-5 h-5 text-white" />
+//               </div>
+//               <div>
+//                 Edit User
+//                 <p className="text-sm text-slate-500 font-normal mt-1">Update user information and role</p>
+//               </div>
+//             </DialogTitle>
+//           </DialogHeader>
+
+//           {editingUser && (
+//             <form onSubmit={handleUpdate} className="space-y-6">
+//               {/* User Preview */}
+//               <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200">
+//                 <Avatar className="h-16 w-16 border-2 border-blue-200">
+//                   <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-500 text-white text-lg">
+//                     {getInitials(editingUser.name)}
+//                   </AvatarFallback>
+//                 </Avatar>
+//                 <div>
+//                   <p className="font-semibold text-slate-900">{editingUser.name}</p>
+//                   <p className="text-sm text-slate-500">
+//                     Member since {new Date(editingUser.createdAt).toLocaleDateString()}
+//                   </p>
+//                 </div>
+//               </div>
+
+//               <div className="space-y-4">
+//                 <div className="grid gap-4 sm:grid-cols-2">
+//                   <div className="space-y-2">
+//                     <Label className="text-slate-700 font-medium">Full Name</Label>
+//                     <Input
+//                       value={editName}
+//                       onChange={(e) => setEditName(e.target.value)}
+//                       required
+//                       className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-11 rounded-xl"
+//                     />
+//                   </div>
+
+//                   <div className="space-y-2">
+//                     <Label className="text-slate-700 font-medium">Username</Label>
+//                     <Input
+//                       value={editUsername}
+//                       onChange={(e) => setEditUsername(e.target.value)}
+//                       required
+//                       className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-11 rounded-xl"
+//                     />
+//                   </div>
+//                 </div>
+
+//                 <div className="space-y-2">
+//                   <Label className="text-slate-700 font-medium">
+//                     New Password
+//                     <span className="text-xs text-slate-400 ml-2">(leave blank to keep current)</span>
+//                   </Label>
+//                   <div className="relative">
+//                     <Input
+//                       type={showEditPassword ? "text" : "password"}
+//                       value={editPassword}
+//                       onChange={(e) => setEditPassword(e.target.value)}
+//                       placeholder="Enter new password"
+//                       className="pr-10 bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-11 rounded-xl"
+//                     />
+//                     <Button
+//                       type="button"
+//                       variant="ghost"
+//                       size="sm"
+//                       className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 p-0 text-slate-400 hover:text-slate-600"
+//                       onClick={() => setShowEditPassword(!showEditPassword)}
+//                     >
+//                       {showEditPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+//                     </Button>
+//                   </div>
+//                 </div>
+
+//                 <div className="space-y-2">
+//                   <Label className="text-slate-700 font-medium">Role</Label>
+//                   <Select value={editRole} onValueChange={(v: RoleType) => setEditRole(v)}>
+//                     <SelectTrigger className="bg-white border-slate-300 text-slate-900 h-11 rounded-xl">
+//                       <SelectValue />
+//                     </SelectTrigger>
+//                     <SelectContent>
+//                       {Object.entries(roleConfig).map(([role, config]) => (
+//                         <SelectItem key={role} value={role}>
+//                           <div className="flex items-center gap-2">
+//                             <config.icon className="h-4 w-4" />
+//                             {config.label}
+//                           </div>
+//                         </SelectItem>
+//                       ))}
+//                     </SelectContent>
+//                   </Select>
+//                 </div>
+//               </div>
+
+//               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+//                 <Button
+//                   type="button"
+//                   variant="outline"
+//                   onClick={() => setEditOpen(false)}
+//                   className="border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-5 rounded-xl"
+//                 >
+//                   Cancel
+//                 </Button>
+//                 <Button
+//                   type="submit"
+//                   className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-5 rounded-xl shadow-lg hover:shadow-xl"
+//                 >
+//                   Save Changes
+//                 </Button>
+//               </div>
+//             </form>
+//           )}
+//         </DialogContent>
+//       </Dialog>
+//     </div>
+//   );
+// }
+
+
+
+
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
@@ -2481,7 +3329,6 @@ import {
   Key,
   Mail,
   User,
-  MoreVertical,
   Edit,
   Trash2,
   Eye,
@@ -2498,14 +3345,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 type UserItem = UserDTO;
 
-// Role configuration
-const roleConfig: Record<RoleType, { 
-  color: string; 
-  bgColor: string; 
-  icon: any; 
-  label: string;
-  textColor: string;
-}> = {
+const roleConfig: Record<
+  RoleType,
+  {
+    color: string;
+    bgColor: string;
+    icon: any;
+    label: string;
+    textColor: string;
+  }
+> = {
   SUPERADMIN: {
     color: "text-rose-600",
     bgColor: "bg-rose-100",
@@ -2538,21 +3387,36 @@ const roleConfig: Record<RoleType, {
 
 function getInitials(name: string) {
   return name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 }
 
-function RoleBadge({ role, showLabel = false }: { role: RoleType; showLabel?: boolean }) {
+function RoleBadge({
+  role,
+  showLabel = false,
+}: {
+  role: RoleType;
+  showLabel?: boolean;
+}) {
   const config = roleConfig[role];
   const Icon = config.icon;
-  
+
+  const darkRoleClass =
+    role === "SUPERADMIN"
+      ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+      : role === "ADMIN"
+      ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
+      : role === "RECEPTION"
+      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+      : "bg-purple-500/20 text-purple-400 border-purple-500/30";
+
   return (
-    <Badge 
-      variant="outline" 
-      className={`${config.bgColor} ${config.textColor} border-0 font-medium gap-1 px-2 py-0.5`}
+    <Badge
+      variant="outline"
+      className={`${darkRoleClass} font-medium gap-1 px-2 py-0.5 border`}
     >
       <Icon className="h-3 w-3" />
       {showLabel ? config.label : role}
@@ -2601,27 +3465,32 @@ export default function UsersPage() {
   };
 
   const countByRole = (role: RoleType) => users.filter((u) => u.role === role).length;
-  
-  const stats = useMemo(() => ({
-    total: users.length,
-    superadmin: countByRole("SUPERADMIN"),
-    admin: countByRole("ADMIN"),
-    reception: countByRole("RECEPTION"),
-    instructor: countByRole("INSTRUCTOR"),
-    recent: users.filter(u => {
-      const daysSinceCreation = (Date.now() - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-      return daysSinceCreation <= 7;
-    }).length,
-  }), [users]);
+
+  const stats = useMemo(
+    () => ({
+      total: users.length,
+      superadmin: countByRole("SUPERADMIN"),
+      admin: countByRole("ADMIN"),
+      reception: countByRole("RECEPTION"),
+      instructor: countByRole("INSTRUCTOR"),
+      recent: users.filter((u) => {
+        const daysSinceCreation =
+          (Date.now() - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+        return daysSinceCreation <= 7;
+      }).length,
+    }),
+    [users]
+  );
 
   const latestUser = useMemo(() => users[0] || null, [users]);
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
-    
+
     let filtered = users.filter((u) => {
       const matchesRole = roleFilter === "ALL" || u.role === roleFilter;
-      const matchesSearch = !term ||
+      const matchesSearch =
+        !term ||
         u.name.toLowerCase().includes(term) ||
         u.username.toLowerCase().includes(term);
       return matchesRole && matchesSearch;
@@ -2630,7 +3499,7 @@ export default function UsersPage() {
     if (activeTab === "recent") {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      filtered = filtered.filter(u => new Date(u.createdAt) >= sevenDaysAgo);
+      filtered = filtered.filter((u) => new Date(u.createdAt) >= sevenDaysAgo);
     }
 
     return filtered;
@@ -2652,7 +3521,7 @@ export default function UsersPage() {
 
     toast.success("User created successfully");
     await loadUsers();
-    
+
     setNewName("");
     setNewUsername("");
     setNewPassword("");
@@ -2703,365 +3572,210 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="min-h-screen  p-6 md:p-10">
-      {/* Luxury Background Pattern */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(37,99,235,0.03)_0%,transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.02)_0%,transparent_50%)]"></div>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+    <div className="min-h-screen bg-[#0A0F1E]">
+      {/* Professional Dark Background with Subtle Pattern */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#1E293B_0%,_#0A0F1E_100%)]"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBkPSJNMjAgMjBoMjB2MjBIMjB6TTAgMGgyMHYyMEgweiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIvPjwvc3ZnPg==')] opacity-30"></div>
+        <div className="absolute top-0 -left-40 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-7xl mx-auto">
-        {/* Luxury Header */}
-        <div className="mb-10 md:mb-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
-                  <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
+      <div className="relative max-w-7xl mx-auto p-6 lg:p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-xl shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+                  <Users className="w-7 h-7 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
-                    User Management
-                  </h1>
-                  <p className="text-slate-600 mt-2 font-light flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-blue-400" />
-                    Manage system access and user roles
-                  </p>
-                </div>
+                <div className="absolute -inset-1 bg-indigo-500/20 blur-lg rounded-full"></div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  User Management
+                </h1>
+                <p className="text-sm text-slate-400 flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-indigo-400" />
+                  Manage system access and user roles
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-3">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => loadUsers(true)}
                 disabled={refreshing}
-                className="relative bg-white border-slate-300 text-slate-700 hover:bg-slate-50 h-10 w-10 rounded-xl"
+                className="border-slate-700 text-slate-300 bg-slate-800/50 hover:bg-slate-800 h-10 w-10 rounded-xl"
               >
-                <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
               </Button>
-              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
-                <div className="relative">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>
+
+              <Badge
+                variant="outline"
+                className="border-slate-700 text-slate-300 bg-slate-800/50 px-4 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span>{loading ? "Loading..." : `${users.length} Active Users`}</span>
                 </div>
-                <span className="text-sm font-medium text-slate-700">
-                  {loading ? 'Loading...' : `${users.length} Active Users`}
-                </span>
-              </div>
+              </Badge>
             </div>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="space-y-8">
-          {/* Section 1: Stats Overview */}
-          <div className="relative">
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-            
-            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-              {/* Stats Header */}
-              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-sm">
-                      <Activity className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-slate-900">System Overview</h2>
-                      <p className="text-sm text-slate-500">User statistics and metrics</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="p-8 md:p-10">
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-6">
-                  {/* Total Users */}
-                  <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-all">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <Users className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <Badge className="bg-blue-100 text-blue-700 border-0">
-                        {stats.recent} new
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1">Total Users</p>
-                    <p className="text-3xl font-bold text-slate-900">{stats.total}</p>
-                    <div className="mt-3 flex items-center gap-1 text-xs text-emerald-600">
-                      <TrendingUp className="w-3 h-3" />
-                      <span>+{stats.recent} this week</span>
-                    </div>
-                  </div>
-
-                  {/* Super Admin */}
-                  <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
-                    <div className="w-10 h-10 rounded-lg bg-rose-100 flex items-center justify-center mb-4">
-                      <ShieldCheck className="w-5 h-5 text-rose-600" />
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1">Super Admin</p>
-                    <p className="text-3xl font-bold text-rose-600">{stats.superadmin}</p>
-                  </div>
-
-                  {/* Admin */}
-                  <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center mb-4">
-                      <UserCog className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1">Admin</p>
-                    <p className="text-3xl font-bold text-blue-600">{stats.admin}</p>
-                  </div>
-
-                  {/* Reception */}
-                  <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-4">
-                      <UserCircle2 className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1">Reception</p>
-                    <p className="text-3xl font-bold text-emerald-600">{stats.reception}</p>
-                  </div>
-
-                  {/* Instructor */}
-                  <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
-                    <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center mb-4">
-                      <Award className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1">Instructor</p>
-                    <p className="text-3xl font-bold text-purple-600">{stats.instructor}</p>
-                  </div>
-
-                  {/* Activity */}
-                  <div className="bg-gradient-to-br from-slate-50 to-white rounded-xl border border-slate-200 p-5">
-                    <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center mb-4">
-                      <Activity className="w-5 h-5 text-amber-600" />
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1">Activity</p>
-                    <p className="text-3xl font-bold text-amber-600">
-                      {Math.round((stats.recent / Math.max(stats.total, 1)) * 100)}%
-                    </p>
-                  </div>
-                </div>
-
-                {/* Latest User Banner */}
-                {latestUser && (
-                  <div className="mt-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200 p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                          <Zap className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500">Latest User Joined</p>
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900">{latestUser.name}</span>
-                            <RoleBadge role={latestUser.role} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <Clock className="w-4 h-4 text-blue-400" />
-                        <span>{new Date(latestUser.createdAt).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+          {/* Stats */}
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-3 lg:grid-cols-6 mt-8">
+            <StatsCard
+              icon={<Users className="w-5 h-5 text-indigo-400" />}
+              label="Total Users"
+              value={stats.total}
+              sub={`+${stats.recent} this week`}
+              badge={`${stats.recent} new`}
+            />
+            <StatsCard
+              icon={<ShieldCheck className="w-5 h-5 text-rose-400" />}
+              label="Super Admin"
+              value={stats.superadmin}
+              valueClass="text-rose-400"
+            />
+            <StatsCard
+              icon={<UserCog className="w-5 h-5 text-blue-400" />}
+              label="Admin"
+              value={stats.admin}
+              valueClass="text-blue-400"
+            />
+            <StatsCard
+              icon={<UserCircle2 className="w-5 h-5 text-emerald-400" />}
+              label="Reception"
+              value={stats.reception}
+              valueClass="text-emerald-400"
+            />
+            <StatsCard
+              icon={<Award className="w-5 h-5 text-purple-400" />}
+              label="Instructor"
+              value={stats.instructor}
+              valueClass="text-purple-400"
+            />
+            <StatsCard
+              icon={<Activity className="w-5 h-5 text-amber-400" />}
+              label="Activity"
+              value={`${Math.round((stats.recent / Math.max(stats.total, 1)) * 100)}%`}
+              valueClass="text-amber-400"
+            />
           </div>
 
-          {/* Section 2: Create New User */}
-          <div className="relative">
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
-            
-            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-              {/* Form Header */}
-              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600"></div>
-                <div className="flex items-center gap-4 pt-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-500 flex items-center justify-center shadow-sm">
-                    <UserPlus className="w-4 h-4 text-white" />
+          {latestUser && (
+            <div className="mt-6 p-4 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-indigo-400" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-slate-900">Create New User</h2>
-                    <p className="text-sm text-slate-500">Add a new user account to the system</p>
+                    <p className="text-xs text-slate-500">Latest User Joined</p>
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-white">{latestUser.name}</span>
+                      <RoleBadge role={latestUser.role} />
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              {/* Form Content */}
-              <div className="p-8 md:p-10">
-                <form onSubmit={handleCreate} className="space-y-6">
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                    {/* Full Name */}
-                    <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium flex items-center gap-1">
-                        <User className="w-4 h-4 text-blue-400" />
-                        Full Name
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        placeholder="John Doe"
-                        required
-                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-11 rounded-xl transition-all"
-                      />
-                    </div>
-
-                    {/* Username */}
-                    <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium flex items-center gap-1">
-                        <Mail className="w-4 h-4 text-blue-400" />
-                        Username
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        value={newUsername}
-                        onChange={(e) => setNewUsername(e.target.value)}
-                        placeholder="johndoe"
-                        required
-                        className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-11 rounded-xl transition-all"
-                      />
-                    </div>
-
-                    {/* Password */}
-                    <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium flex items-center gap-1">
-                        <Key className="w-4 h-4 text-blue-400" />
-                        Password
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          value={newPassword}
-                          onChange={(e) => setNewPassword(e.target.value)}
-                          placeholder="••••••••"
-                          required
-                          className="pr-10 bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 h-11 rounded-xl transition-all"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 p-0 text-slate-400 hover:text-slate-600"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Role */}
-                    <div className="space-y-2">
-                      <Label className="text-slate-700 font-medium flex items-center gap-1">
-                        <Shield className="w-4 h-4 text-blue-400" />
-                        Role
-                        <span className="text-red-500">*</span>
-                      </Label>
-                      <Select value={newRole} onValueChange={(v: RoleType) => setNewRole(v)}>
-                        <SelectTrigger className="bg-white border-slate-300 text-slate-900 h-11 rounded-xl">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-blue-100/95">
-                          {Object.entries(roleConfig).map(([role, config]) => (
-                            <SelectItem key={role} value={role}>
-                              <div className="flex items-center gap-2 ">
-                                <config.icon className="h-4 w-4" />
-                                {config.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button
-                      type="submit"
-                      className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-semibold px-8 py-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl"
-                    >
-                      <UserPlus className="w-5 h-5 mr-2" />
-                      Create User Account
-                    </Button>
-                  </div>
-                </form>
+                <div className="flex items-center gap-2 text-sm text-slate-400">
+                  <Clock className="w-4 h-4 text-indigo-400" />
+                  <span>{new Date(latestUser.createdAt).toLocaleDateString()}</span>
+                </div>
               </div>
             </div>
-            <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent"></div>
+          )}
+        </div>
+
+        {/* Create User Card */}
+        <div className="bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-700/50 overflow-hidden shadow-xl mb-8">
+          <div className="px-8 py-6 border-b border-slate-700/50 bg-slate-800/80">
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-sm">
+                <UserPlus className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-white">Create New User</h2>
+                <p className="text-sm text-slate-400">Add a new user account to the system</p>
+              </div>
+            </div>
           </div>
 
-          {/* Section 3: User Management */}
-          <div className="relative">
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
-            
-            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-              {/* Header with Filters */}
-              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600"></div>
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-2">
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center shadow-sm">
-                      <Users className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-slate-900">User Management</h2>
-                      <p className="text-sm text-slate-500">View and manage system users</p>
-                    </div>
-                  </div>
+          <div className="p-8">
+            <form onSubmit={handleCreate} className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-2">
+                  <Label className="text-slate-300 font-medium flex items-center gap-1">
+                    <User className="w-4 h-4 text-indigo-400" />
+                    Full Name
+                    <span className="text-rose-400">*</span>
+                  </Label>
+                  <Input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    placeholder="John Doe"
+                    required
+                    className="bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-11 rounded-xl"
+                  />
+                </div>
 
-                  {/* Tabs */}
-                  <div className="flex gap-2 bg-slate-100 p-1 rounded-lg">
+                <div className="space-y-2">
+                  <Label className="text-slate-300 font-medium flex items-center gap-1">
+                    <Mail className="w-4 h-4 text-indigo-400" />
+                    Username
+                    <span className="text-rose-400">*</span>
+                  </Label>
+                  <Input
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="johndoe"
+                    required
+                    className="bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-11 rounded-xl"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-slate-300 font-medium flex items-center gap-1">
+                    <Key className="w-4 h-4 text-indigo-400" />
+                    Password
+                    <span className="text-rose-400">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      className="pr-10 bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-11 rounded-xl"
+                    />
                     <Button
-                      variant={activeTab === "all" ? "default" : "ghost"}
+                      type="button"
+                      variant="ghost"
                       size="sm"
-                      onClick={() => setActiveTab("all")}
-                      className={activeTab === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 p-0 text-slate-400 hover:text-slate-200"
+                      onClick={() => setShowPassword(!showPassword)}
                     >
-                      <Users className="w-4 h-4 mr-2" />
-                      All Users
-                    </Button>
-                    <Button
-                      variant={activeTab === "recent" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setActiveTab("recent")}
-                      className={activeTab === "recent" ? "bg-white text-slate-900 shadow-sm" : "text-slate-600"}
-                    >
-                      <Clock className="w-4 h-4 mr-2" />
-                      Recent (7 days)
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>
-              </div>
 
-              {/* Filters */}
-              <div className="px-8 py-4 border-b border-slate-100 bg-slate-50/50">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <Input
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Search by name or username..."
-                      className="pl-9 bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 h-10 rounded-lg"
-                    />
-                  </div>
-                  <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as RoleType | "ALL")}>
-                    <SelectTrigger className="w-full sm:w-[180px] bg-white border-slate-300 text-slate-900 h-10 rounded-lg">
-                      <Filter className="w-4 h-4 mr-2 text-slate-400" />
-                      <SelectValue placeholder="Filter by role" />
+                <div className="space-y-2">
+                  <Label className="text-slate-300 font-medium flex items-center gap-1">
+                    <Shield className="w-4 h-4 text-indigo-400" />
+                    Role
+                    <span className="text-rose-400">*</span>
+                  </Label>
+                  <Select value={newRole} onValueChange={(v: RoleType) => setNewRole(v)}>
+                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white h-11 rounded-xl">
+                      <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ALL">All Roles</SelectItem>
+                    <SelectContent className="bg-slate-900 border-slate-700 text-white">
                       {Object.entries(roleConfig).map(([role, config]) => (
                         <SelectItem key={role} value={role}>
                           <div className="flex items-center gap-2">
@@ -3075,116 +3789,199 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              {/* Users List */}
-              <div className="p-8 md:p-10">
-                {users.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                      <Users className="w-10 h-10 text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Users Found</h3>
-                    <p className="text-slate-500">Create your first user account to get started.</p>
-                  </div>
-                ) : filteredUsers.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 mx-auto bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                      <AlertCircle className="w-10 h-10 text-slate-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No Matches Found</h3>
-                    <p className="text-slate-500">Try adjusting your search or filter criteria.</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4">
-                    {filteredUsers.map((user) => (
-                      <div
-                        key={user.id}
-                        className="group bg-white border border-slate-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300 hover:border-purple-200"
-                      >
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div className="flex items-start gap-4">
-                            <Avatar className="h-14 w-14 border-2 border-purple-200">
-                              <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-500 text-white text-lg">
-                                {getInitials(user.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-semibold text-lg text-slate-900">{user.name}</h3>
-                              <div className="flex flex-wrap items-center gap-3 mt-1">
-                                <code className="px-2 py-1 bg-slate-100 rounded-md text-xs text-slate-600 font-mono">
-                                  {user.username}
-                                </code>
-                                <RoleBadge role={user.role} showLabel />
-                                <div className="flex items-center gap-1 text-xs text-slate-500">
-                                  <Calendar className="w-3 h-3" />
-                                  {new Date(user.createdAt).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+              <div className="flex justify-end">
+                <Button
+                  type="submit"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-6 rounded-xl shadow-lg"
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Create User Account
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
 
-                          <div className="flex items-center gap-2 pl-16 sm:pl-0">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEdit(user)}
-                              className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(user.id)}
-                              className="text-rose-500 hover:text-rose-600 hover:bg-rose-50"
-                            >
-                              <Trash2 className="w-4 h-4 mr-1" />
-                              Delete
-                            </Button>
-                            <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-purple-400 transition-colors" />
+        {/* User Management Card */}
+        <div className="bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-700/50 overflow-hidden shadow-xl">
+          <div className="px-8 py-6 border-b border-slate-700/50 bg-slate-800/80">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-sm">
+                  <Users className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-white">User Management</h2>
+                  <p className="text-sm text-slate-400">View and manage system users</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2 bg-slate-900/60 p-1 rounded-lg border border-slate-700/50">
+                <Button
+                  variant={activeTab === "all" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setActiveTab("all")}
+                  className={
+                    activeTab === "all"
+                      ? "bg-indigo-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  All Users
+                </Button>
+                <Button
+                  variant={activeTab === "recent" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setActiveTab("recent")}
+                  className={
+                    activeTab === "recent"
+                      ? "bg-indigo-500 text-white shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Recent (7 days)
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="px-8 py-4 border-b border-slate-700/50 bg-slate-900/30">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by name or username..."
+                  className="pl-9 bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-10 rounded-lg"
+                />
+              </div>
+
+              <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as RoleType | "ALL")}>
+                <SelectTrigger className="w-full sm:w-[180px] bg-slate-900/50 border-slate-700 text-white h-10 rounded-lg">
+                  <Filter className="w-4 h-4 mr-2 text-slate-500" />
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-900 border-slate-700 text-white">
+                  <SelectItem value="ALL">All Roles</SelectItem>
+                  {Object.entries(roleConfig).map(([role, config]) => (
+                    <SelectItem key={role} value={role}>
+                      <div className="flex items-center gap-2">
+                        <config.icon className="h-4 w-4" />
+                        {config.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Users List */}
+          <div className="p-8">
+            {users.length === 0 ? (
+              <EmptyState
+                icon={<Users className="w-10 h-10 text-slate-500" />}
+                title="No Users Found"
+                description="Create your first user account to get started."
+              />
+            ) : filteredUsers.length === 0 ? (
+              <EmptyState
+                icon={<AlertCircle className="w-10 h-10 text-slate-500" />}
+                title="No Matches Found"
+                description="Try adjusting your search or filter criteria."
+              />
+            ) : (
+              <div className="grid gap-4">
+                {filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="group bg-slate-900/50 border border-slate-700/50 rounded-xl p-4 hover:border-indigo-500/30 transition-all duration-300"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div className="flex items-start gap-4">
+                        <Avatar className="h-14 w-14 border-2 border-indigo-500/20">
+                          <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-blue-500 text-white text-lg">
+                            {getInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+
+                        <div>
+                          <h3 className="font-semibold text-lg text-white">{user.name}</h3>
+                          <div className="flex flex-wrap items-center gap-3 mt-1">
+                            <code className="px-2 py-1 bg-slate-800 rounded-md text-xs text-slate-400 font-mono border border-slate-700">
+                              {user.username}
+                            </code>
+                            <RoleBadge role={user.role} showLabel />
+                            <div className="flex items-center gap-1 text-xs text-slate-500">
+                              <Calendar className="w-3 h-3" />
+                              {new Date(user.createdAt).toLocaleDateString()}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
 
-              {/* Footer */}
-             
-            </div>
-            <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+                      <div className="flex items-center gap-2 pl-16 sm:pl-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEdit(user)}
+                          className="text-slate-300 hover:text-blue-400 hover:bg-blue-500/10"
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(user.id)}
+                          className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
+                        <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="sm:max-w-[525px] bg-white/95 backdrop-blur-sm border-slate-200/80 shadow-2xl">
+        <DialogContent className="sm:max-w-[525px] bg-slate-900/95 backdrop-blur-sm border-slate-700 shadow-2xl text-white">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-slate-900 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-lg">
+            <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-500 flex items-center justify-center shadow-lg">
                 <Edit className="w-5 h-5 text-white" />
               </div>
               <div>
                 Edit User
-                <p className="text-sm text-slate-500 font-normal mt-1">Update user information and role</p>
+                <p className="text-sm text-slate-400 font-normal mt-1">
+                  Update user information and role
+                </p>
               </div>
             </DialogTitle>
           </DialogHeader>
 
           {editingUser && (
             <form onSubmit={handleUpdate} className="space-y-6">
-              {/* User Preview */}
-              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-white rounded-xl border border-slate-200">
-                <Avatar className="h-16 w-16 border-2 border-blue-200">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-blue-500 text-white text-lg">
+              <div className="flex items-center gap-4 p-4 bg-slate-800/60 rounded-xl border border-slate-700/50">
+                <Avatar className="h-16 w-16 border-2 border-indigo-500/20">
+                  <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-blue-500 text-white text-lg">
                     {getInitials(editingUser.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-semibold text-slate-900">{editingUser.name}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-semibold text-white">{editingUser.name}</p>
+                  <p className="text-sm text-slate-400">
                     Member since {new Date(editingUser.createdAt).toLocaleDateString()}
                   </p>
                 </div>
@@ -3193,30 +3990,32 @@ export default function UsersPage() {
               <div className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label className="text-slate-700 font-medium">Full Name</Label>
+                    <Label className="text-slate-300 font-medium">Full Name</Label>
                     <Input
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
                       required
-                      className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-11 rounded-xl"
+                      className="bg-slate-900/50 border-slate-700 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-11 rounded-xl"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-slate-700 font-medium">Username</Label>
+                    <Label className="text-slate-300 font-medium">Username</Label>
                     <Input
                       value={editUsername}
                       onChange={(e) => setEditUsername(e.target.value)}
                       required
-                      className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-11 rounded-xl"
+                      className="bg-slate-900/50 border-slate-700 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-11 rounded-xl"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-slate-700 font-medium">
+                  <Label className="text-slate-300 font-medium">
                     New Password
-                    <span className="text-xs text-slate-400 ml-2">(leave blank to keep current)</span>
+                    <span className="text-xs text-slate-500 ml-2">
+                      (leave blank to keep current)
+                    </span>
                   </Label>
                   <div className="relative">
                     <Input
@@ -3224,13 +4023,13 @@ export default function UsersPage() {
                       value={editPassword}
                       onChange={(e) => setEditPassword(e.target.value)}
                       placeholder="Enter new password"
-                      className="pr-10 bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-11 rounded-xl"
+                      className="pr-10 bg-slate-900/50 border-slate-700 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 h-11 rounded-xl"
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 p-0 text-slate-400 hover:text-slate-600"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9 p-0 text-slate-400 hover:text-slate-200"
                       onClick={() => setShowEditPassword(!showEditPassword)}
                     >
                       {showEditPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -3239,12 +4038,12 @@ export default function UsersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-slate-700 font-medium">Role</Label>
+                  <Label className="text-slate-300 font-medium">Role</Label>
                   <Select value={editRole} onValueChange={(v: RoleType) => setEditRole(v)}>
-                    <SelectTrigger className="bg-white border-slate-300 text-slate-900 h-11 rounded-xl">
+                    <SelectTrigger className="bg-slate-900/50 border-slate-700 text-white h-11 rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-slate-900 border-slate-700 text-white">
                       {Object.entries(roleConfig).map(([role, config]) => (
                         <SelectItem key={role} value={role}>
                           <div className="flex items-center gap-2">
@@ -3258,18 +4057,18 @@ export default function UsersPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-700/50">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setEditOpen(false)}
-                  className="border-slate-300 text-slate-700 hover:bg-slate-50 px-6 py-5 rounded-xl"
+                  className="border-slate-700 text-slate-300 hover:bg-slate-800 px-6 py-5 rounded-xl"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-5 rounded-xl shadow-lg hover:shadow-xl"
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-5 rounded-xl shadow-lg"
                 >
                   Save Changes
                 </Button>
@@ -3278,6 +4077,65 @@ export default function UsersPage() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function StatsCard({
+  icon,
+  label,
+  value,
+  sub,
+  badge,
+  valueClass = "text-white",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  sub?: string;
+  badge?: string;
+  valueClass?: string;
+}) {
+  return (
+    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-5 hover:border-slate-600/50 transition-colors">
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+          {icon}
+        </div>
+        {badge ? (
+          <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30">
+            {badge}
+          </Badge>
+        ) : null}
+      </div>
+      <p className="text-sm text-slate-400 mb-1">{label}</p>
+      <p className={`text-3xl font-bold ${valueClass}`}>{value}</p>
+      {sub ? (
+        <div className="mt-3 flex items-center gap-1 text-xs text-emerald-400">
+          <TrendingUp className="w-3 h-3" />
+          <span>{sub}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function EmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="text-center py-12">
+      <div className="w-20 h-20 mx-auto bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
+        {icon}
+      </div>
+      <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+      <p className="text-slate-400">{description}</p>
     </div>
   );
 }
