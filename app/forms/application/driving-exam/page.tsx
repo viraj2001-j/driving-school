@@ -1,4 +1,648 @@
 
+// "use client";
+
+// import { useState, useEffect, useMemo } from "react";
+// import { toast } from "sonner";
+// import { searchStudents } from "@/app/actions/searchStudent";
+// import {
+//   getStudentDrivingExamBundle,
+//   upsertDrivingExamResult,
+//   deleteDrivingExamResult,
+// } from "@/app/actions/saveDrivingExam";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { Textarea } from "@/components/ui/textarea";
+// import { Badge } from "@/components/ui/badge";
+// import { Car, Search, User, ChevronRight, CheckCircle, Clock, AlertCircle } from "lucide-react";
+
+// type VehicleRow = {
+//   vehicleClassId: number;
+//   vehicleName: string;
+//   trainedDates: string;
+//   examDate: string;
+//   result: string;
+//   notes: string;
+//   hasSavedRecord: boolean;
+// };
+
+// const resultOptions = ["PASS", "FAIL", "ABSENT"];
+
+// function toDateInputValue(dt?: Date | string | null) {
+//   if (!dt) return "";
+//   const d = typeof dt === "string" ? new Date(dt) : dt;
+//   if (isNaN(d.getTime())) return "";
+//   return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+//     .toISOString()
+//     .slice(0, 10);
+// }
+
+// export default function DrivingExamResultsPage() {
+//   const [query, setQuery] = useState("");
+//   const [results, setResults] = useState<any[]>([]);
+//   const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+//   const [searchLoading, setSearchLoading] = useState(false);
+//   const [bundleLoading, setBundleLoading] = useState(false);
+//   const [vehicleRows, setVehicleRows] = useState<VehicleRow[]>([]);
+//   const [savingKey, setSavingKey] = useState<string | null>(null);
+//   const [deletingKey, setDeletingKey] = useState<string | null>(null);
+//   const [globalExamDate, setGlobalExamDate] = useState("");
+//   const [savingAll, setSavingAll] = useState(false);
+//   const [savingExamDateOnly, setSavingExamDateOnly] = useState(false);
+
+//   useEffect(() => {
+//     const timeout = setTimeout(async () => {
+//       if (query.trim().length >= 2 && !selectedStudent) {
+//         setSearchLoading(true);
+//         const data = await searchStudents(query.trim());
+//         setResults(data || []);
+//         setSearchLoading(false);
+//       } else {
+//         setResults([]);
+//       }
+//     }, 300);
+//     return () => clearTimeout(timeout);
+//   }, [query, selectedStudent]);
+
+//   const selectedVehicles = useMemo(() => {
+//     if (!selectedStudent?.vehicleClasses) return [];
+//     return selectedStudent.vehicleClasses
+//       .map((v: any) => v.vehicleClass?.name)
+//       .filter(Boolean);
+//   }, [selectedStudent]);
+
+//   async function handleSelect(student: any) {
+//     setSelectedStudent(student);
+//     setQuery(student.fullName);
+//     setResults([]);
+//     setBundleLoading(true);
+
+//     const res = await getStudentDrivingExamBundle(student.id);
+//     setBundleLoading(false);
+
+//     if (!res.success || !res.student) {
+//       toast.error(res.error || "Failed to load student");
+//       return;
+//     }
+
+//     const s = res.student;
+//     const selectedClasses = s.vehicleClasses.map((av: any) => ({
+//       vehicleClassId: av.vehicleClassId,
+//       vehicleName: av.vehicleClass?.name || `Vehicle #${av.vehicleClassId}`,
+//     }));
+
+//     const existingMap = new Map<number, any>();
+//     (s.drivingExamResults || []).forEach((r: any) =>
+//       existingMap.set(r.vehicleClassId, r)
+//     );
+
+//     const rows: VehicleRow[] = selectedClasses.map((vc) => {
+//       const existing = existingMap.get(vc.vehicleClassId);
+//       return {
+//         vehicleClassId: vc.vehicleClassId,
+//         vehicleName: vc.vehicleName,
+//         trainedDates: existing?.trainedDates || "",
+//         examDate: toDateInputValue(existing?.examDate),
+//         result: existing?.result || "ABSENT",
+//         notes: existing?.notes || "",
+//         hasSavedRecord: !!existing,
+//       };
+//     });
+
+//     setSelectedStudent(s);
+//     setVehicleRows(rows);
+//   }
+
+//   function handleClear() {
+//     setSelectedStudent(null);
+//     setQuery("");
+//     setResults([]);
+//     setVehicleRows([]);
+//   }
+
+//   function updateRow(vehicleClassId: number, field: keyof VehicleRow, value: any) {
+//     setVehicleRows((prev) =>
+//       prev.map((r) =>
+//         r.vehicleClassId === vehicleClassId ? { ...r, [field]: value } : r
+//       )
+//     );
+//   }
+
+//   async function handleSaveRow(row: VehicleRow) {
+//     if (!selectedStudent?.id) return;
+
+//     const key = `${selectedStudent.id}-${row.vehicleClassId}`;
+//     setSavingKey(key);
+
+//     const res = await upsertDrivingExamResult({
+//       applicationId: selectedStudent.id,
+//       vehicleClassId: row.vehicleClassId,
+//       trainedDates: row.trainedDates,
+//       examDate: row.examDate || undefined,
+//       result: row.result,
+//       notes: row.notes,
+//     });
+
+//     setSavingKey(null);
+
+//     if (res.success) {
+//       toast.success("Saved", { description: `${row.vehicleName} updated` });
+//       updateRow(row.vehicleClassId, "hasSavedRecord", true);
+//     } else {
+//       toast.error(res.error || "Failed to save");
+//     }
+//   }
+
+//   async function handleDeleteRow(row: VehicleRow) {
+//     if (!selectedStudent?.id) return;
+//     if (!confirm(`Delete ${row.vehicleName} exam record?`)) return;
+
+//     const key = `${selectedStudent.id}-${row.vehicleClassId}`;
+//     setDeletingKey(key);
+
+//     const res = await deleteDrivingExamResult({
+//       applicationId: selectedStudent.id,
+//       vehicleClassId: row.vehicleClassId,
+//     });
+
+//     setDeletingKey(null);
+
+//     if (res.success) {
+//       toast.success("Deleted", { description: `${row.vehicleName} removed` });
+//       setVehicleRows((prev) =>
+//         prev.map((r) =>
+//           r.vehicleClassId === row.vehicleClassId
+//             ? {
+//                 ...r,
+//                 trainedDates: "",
+//                 examDate: "",
+//                 result: "ABSENT",
+//                 notes: "",
+//                 hasSavedRecord: false,
+//               }
+//             : r
+//         )
+//       );
+//     } else {
+//       toast.error(res.error || "Delete failed");
+//     }
+//   }
+
+//   return (
+//     <div className="min-h-screen p-6 md:p-10">
+//       {/* Luxury Background Pattern */}
+//       <div className="fixed inset-0 pointer-events-none">
+//         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
+//         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(37,99,235,0.03)_0%,transparent_50%)]"></div>
+//         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.02)_0%,transparent_50%)]"></div>
+//         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+//         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+//       </div>
+
+//       <div className="relative max-w-6xl mx-auto">
+//         {/* Luxury Header */}
+//         <div className="mb-10 md:mb-16">
+//           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+//             <div className="space-y-4">
+//               <div className="flex items-center gap-4">
+//                 <div className="relative">
+//                   <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
+//                   <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
+//                 </div>
+//                 <div>
+//                   <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+//                     Driving Exam Results
+//                   </h1>
+//                   <p className="text-slate-600 mt-2 font-light">Record and manage driving test outcomes</p>
+//                 </div>
+//               </div>
+//             </div>
+//             <div className="flex items-center gap-4">
+//               <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
+//                 <div className="relative">
+//                   <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+//                   <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>
+//                 </div>
+//                 <span className="text-sm font-medium text-slate-700">Exam Entry Mode</span>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Main Content */}
+//         <div className="space-y-8">
+//           {/* Section 1: Student Search */}
+//           <div className="relative">
+//             <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+            
+//             <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+//               {/* Form Header */}
+//               <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
+//                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
+//                 <div className="flex items-center justify-between pt-2">
+//                   <div className="flex items-center gap-4">
+//                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-sm">
+//                       <Search className="w-4 h-4 text-white" />
+//                     </div>
+//                     <div>
+//                       <h2 className="text-xl font-semibold text-slate-900">Find Student</h2>
+//                       <p className="text-sm text-slate-500">Search by name or NIC number</p>
+//                     </div>
+//                   </div>
+//                   <div className="flex items-center gap-3">
+//                     <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+//                     <span className="text-sm font-medium text-slate-700">Step 1/2</span>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Search Content */}
+//               <div className="p-8 md:p-10">
+//                 <div className="space-y-6">
+//                   <div className="space-y-3">
+//                     <Label className="text-slate-700 font-medium flex items-center gap-1">
+//                       Search Student
+//                       <span className="text-red-500">*</span>
+//                     </Label>
+//                     <div className="relative">
+//                       <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+//                       <Input
+//                         value={query}
+//                         onChange={(e) => {
+//                           setQuery(e.target.value);
+//                           setSelectedStudent(null);
+//                         }}
+//                         placeholder="Type name or NIC..."
+//                         className="w-full pl-12 pr-4 py-3 bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300 shadow-sm"
+//                       />
+//                     </div>
+//                   </div>
+
+//                   {/* Search Results */}
+//                   {results.length > 0 && (
+//                     <div className="relative animate-in fade-in slide-in-from-top-2 duration-200">
+//                       <div className="bg-white border border-slate-200 rounded-xl shadow-2xl shadow-slate-900/20 overflow-hidden">
+//                         <div className="max-h-80 overflow-y-auto">
+//                           {results.map((s) => (
+//                             <button
+//                               key={s.id}
+//                               type="button"
+//                               onClick={() => handleSelect(s)}
+//                               className="w-full text-left px-6 py-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors duration-200 group active:bg-blue-100"
+//                             >
+//                               <div className="flex items-center justify-between">
+//                                 <div className="flex-1 min-w-0">
+//                                   <div className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
+//                                     {s.fullName}
+//                                   </div>
+//                                   <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
+//                                     <div className="flex items-center gap-1">
+//                                       <span>NIC: {s.nic}</span>
+//                                     </div>
+//                                   </div>
+//                                 </div>
+//                                 <div className="flex items-center gap-3">
+//                                   <Badge variant="outline" className="bg-slate-50">
+//                                     Ref: {s.referenceNo}
+//                                   </Badge>
+//                                   <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
+//                                 </div>
+//                               </div>
+//                             </button>
+//                           ))}
+//                         </div>
+//                         <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
+//                           {results.length} student{results.length !== 1 ? 's' : ''} found
+//                         </div>
+//                       </div>
+//                     </div>
+//                   )}
+//                 </div>
+//               </div>
+//             </div>
+//             <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+//           </div>
+
+//           {/* Section 2: Exam Results Entry */}
+//           {selectedStudent && (
+//             <div className="relative">
+//               <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+              
+//               <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+//                 {/* Form Header */}
+//                 <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
+//                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600"></div>
+//                   <div className="flex items-center justify-between pt-2">
+//                     <div className="flex items-center gap-4">
+//                       <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center shadow-sm">
+//                         <Car className="w-4 h-4 text-white" />
+//                       </div>
+//                       <div>
+//                         <h2 className="text-xl font-semibold text-slate-900">Exam Results Entry</h2>
+//                         <p className="text-sm text-slate-500">Record driving test outcomes per vehicle class</p>
+//                       </div>
+//                     </div>
+//                     <div className="flex items-center gap-3">
+//                       <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+//                       <span className="text-sm font-medium text-slate-700">Step 2/2</span>
+//                     </div>
+//                   </div>
+//                 </div>
+
+//                 {/* Student Info Bar */}
+//                 <div className="px-8 py-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
+//                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+//                     <div className="flex items-start gap-4">
+//                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center shadow-lg">
+//                         <User className="w-6 h-6 text-white" />
+//                       </div>
+//                       <div className="flex-1">
+//                         <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
+//                           <h3 className="text-xl font-bold text-slate-900">{selectedStudent.fullName}</h3>
+//                           <div className="flex items-center gap-3">
+//                             <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 border-0">
+//                               Ref: {selectedStudent.referenceNo}
+//                             </Badge>
+//                           </div>
+//                         </div>
+//                         <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+//                           <span className="flex items-center gap-1">
+//                             NIC: {selectedStudent.nic}
+//                           </span>
+//                         </div>
+//                         {/* Vehicle Class Badges */}
+//                         <div className="flex flex-wrap gap-2 mt-3">
+//                           {selectedVehicles.map((v: string, i: number) => (
+//                             <Badge key={i} variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+//                               {v}
+//                             </Badge>
+//                           ))}
+//                         </div>
+//                       </div>
+//                     </div>
+//                     <Button
+//                       variant="outline"
+//                       onClick={handleClear}
+//                       className="border-slate-300 hover:bg-slate-50 hover:border-slate-400"
+//                     >
+//                       Clear Selection
+//                     </Button>
+//                   </div>
+//                 </div>
+
+//                 {/* Exam Results Form */}
+//                 <div className="p-8 md:p-10">
+//                   <div className="space-y-10">
+//                     {/* Global Exam Date */}
+//                     <div className="space-y-6">
+//                       <div className="flex items-center gap-4">
+//                         <div className="flex-shrink-0">
+//                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center">
+//                             <span className="text-blue-700 font-bold">01</span>
+//                           </div>
+//                         </div>
+//                         <div>
+//                           <h3 className="text-xl font-semibold text-slate-900">Global Exam Date</h3>
+//                           <p className="text-slate-500">Set date once for all vehicles</p>
+//                         </div>
+//                       </div>
+
+//                       <div className="bg-slate-50 rounded-xl border border-slate-200 p-6">
+//                         <div className="flex flex-col md:flex-row gap-4 items-end">
+//                           <div className="flex-1 space-y-2">
+//                             <Label className="text-slate-700 font-medium">Exam Date</Label>
+//                             <Input
+//                               type="date"
+//                               value={globalExamDate}
+//                               onChange={(e) => setGlobalExamDate(e.target.value)}
+//                               className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300 md:max-w-xs"
+//                             />
+//                           </div>
+//                           <Button
+//                             disabled={!globalExamDate || savingExamDateOnly}
+//                             onClick={async () => {
+//                               setSavingExamDateOnly(true);
+//                               for (let row of vehicleRows) {
+//                                 updateRow(row.vehicleClassId, "examDate", globalExamDate);
+//                               }
+//                               setSavingExamDateOnly(false);
+//                               toast.success("Exam date applied to all vehicles");
+//                             }}
+//                             className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 h-12 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
+//                           >
+//                             {savingExamDateOnly ? "Applying..." : "Apply Date to All"}
+//                           </Button>
+//                         </div>
+//                       </div>
+//                     </div>
+
+//                     {/* Save All Button */}
+//                     <div className="pt-4">
+//                       <Button
+//                         className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-7 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-500 disabled:opacity-50"
+//                         disabled={savingAll}
+//                         onClick={async () => {
+//                           if (!selectedStudent?.id) return;
+//                           setSavingAll(true);
+
+//                           for (let row of vehicleRows) {
+//                             await upsertDrivingExamResult({
+//                               applicationId: selectedStudent.id,
+//                               vehicleClassId: row.vehicleClassId,
+//                               trainedDates: row.trainedDates,
+//                               examDate: row.examDate || undefined,
+//                               result: row.result,
+//                               notes: row.notes,
+//                             });
+//                           }
+
+//                           setSavingAll(false);
+//                           toast.success("All vehicle records saved successfully");
+//                         }}
+//                       >
+//                         {savingAll ? (
+//                           <span className="flex items-center gap-3">
+//                             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+//                             Saving All Records...
+//                           </span>
+//                         ) : (
+//                           "SAVE ALL VEHICLE RESULTS"
+//                         )}
+//                       </Button>
+//                     </div>
+
+//                     {/* Vehicle Rows */}
+//                     <div className="space-y-8">
+//                       <div className="flex items-center gap-4">
+//                         <div className="flex-shrink-0">
+//                           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 flex items-center justify-center">
+//                             <span className="text-emerald-700 font-bold">02</span>
+//                           </div>
+//                         </div>
+//                         <div>
+//                           <h3 className="text-xl font-semibold text-slate-900">Vehicle Class Results</h3>
+//                           <p className="text-slate-500">Enter results for each vehicle category</p>
+//                         </div>
+//                       </div>
+
+//                       {vehicleRows.map((row) => {
+//                         const key = `${selectedStudent.id}-${row.vehicleClassId}`;
+//                         const saving = savingKey === key;
+//                         const deleting = deletingKey === key;
+
+//                         return (
+//                           <div
+//                             key={row.vehicleClassId}
+//                             className="bg-gradient-to-r from-blue-50/30 to-purple-50/30 rounded-2xl border border-slate-200 p-6 shadow-md hover:shadow-lg transition-all duration-300"
+//                           >
+//                             {/* Vehicle Header */}
+//                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+//                               <div className="flex items-center gap-3">
+//                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-md">
+//                                   <Car className="w-5 h-5 text-white" />
+//                                 </div>
+//                                 <div>
+//                                   <h4 className="text-lg font-semibold text-slate-900">{row.vehicleName}</h4>
+//                                   <div className="flex items-center gap-2 mt-1">
+//                                     {row.hasSavedRecord ? (
+//                                       <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 flex items-center gap-1">
+//                                         <CheckCircle className="w-3 h-3" /> Saved
+//                                       </Badge>
+//                                     ) : (
+//                                       <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 flex items-center gap-1">
+//                                         <Clock className="w-3 h-3" /> Not Saved
+//                                       </Badge>
+//                                     )}
+//                                   </div>
+//                                 </div>
+//                               </div>
+
+//                               <div className="flex gap-3">
+//                                 <Button
+//                                   variant="destructive"
+//                                   disabled={deleting}
+//                                   onClick={() => handleDeleteRow(row)}
+//                                   className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
+//                                 >
+//                                   {deleting ? "Deleting..." : "Delete"}
+//                                 </Button>
+//                                 <Button
+//                                   disabled={saving}
+//                                   onClick={() => handleSaveRow(row)}
+//                                   className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
+//                                 >
+//                                   {saving ? "Saving..." : "Save"}
+//                                 </Button>
+//                               </div>
+//                             </div>
+
+//                             {/* Vehicle Form Fields */}
+//                             <div className="grid gap-6 md:grid-cols-2">
+//                               {/* Trained Dates - Full Width */}
+//                               <div className="md:col-span-2 space-y-3">
+//                                 <Label className="text-slate-700 font-medium flex items-center gap-1">
+//                                   Training Dates
+//                                   <span className="text-red-500">*</span>
+//                                 </Label>
+//                                 <Textarea
+//                                   value={row.trainedDates}
+//                                   onChange={(e) =>
+//                                     updateRow(row.vehicleClassId, "trainedDates", e.target.value)
+//                                   }
+//                                   className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 min-h-[100px] rounded-xl transition-all duration-300"
+//                                   placeholder="Enter training dates and details..."
+//                                 />
+//                               </div>
+
+//                               {/* Result */}
+//                               <div className="space-y-3">
+//                                 <Label className="text-slate-700 font-medium">Result</Label>
+//                                 <select
+//                                   value={row.result}
+//                                   onChange={(e) =>
+//                                     updateRow(row.vehicleClassId, "result", e.target.value)
+//                                   }
+//                                   className="w-full h-12 bg-white border border-slate-300 text-slate-900 rounded-xl px-4 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236B7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_1rem_center] bg-[length:1.5em_1.5em]"
+//                                 >
+//                                   {resultOptions.map((opt) => (
+//                                     <option key={opt} value={opt} className="bg-white text-slate-900">
+//                                       {opt}
+//                                     </option>
+//                                   ))}
+//                                 </select>
+//                               </div>
+
+//                               {/* Exam Date */}
+//                               <div className="space-y-3">
+//                                 <Label className="text-slate-700 font-medium">Exam Date</Label>
+//                                 <Input
+//                                   type="date"
+//                                   value={row.examDate}
+//                                   onChange={(e) =>
+//                                     updateRow(row.vehicleClassId, "examDate", e.target.value)
+//                                   }
+//                                   className="bg-white border-slate-300 text-slate-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 h-12 rounded-xl transition-all duration-300"
+//                                 />
+//                               </div>
+
+//                               {/* Notes - Full Width */}
+//                               <div className="md:col-span-2 space-y-3">
+//                                 <Label className="text-slate-700 font-medium">Notes</Label>
+//                                 <Textarea
+//                                   value={row.notes}
+//                                   onChange={(e) =>
+//                                     updateRow(row.vehicleClassId, "notes", e.target.value)
+//                                   }
+//                                   className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 min-h-[80px] rounded-xl transition-all duration-300"
+//                                   placeholder="Additional notes about the exam..."
+//                                 />
+//                               </div>
+//                             </div>
+//                           </div>
+//                         );
+//                       })}
+//                     </div>
+//                   </div>
+//                 </div>
+
+                
+//               </div>
+//               <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+//             </div>
+//           )}
+
+//           {/* Empty State - No Student Selected */}
+//           {!selectedStudent && (
+//             <div className="relative">
+//               <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
+              
+//               <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
+//                 <div className="p-12 text-center">
+//                   <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center mb-6">
+//                     <Car className="w-12 h-12 text-slate-400" />
+//                   </div>
+//                   <h3 className="text-2xl font-semibold text-slate-900 mb-3">No Student Selected</h3>
+//                   <p className="text-slate-600 max-w-lg mx-auto mb-8">
+//                     Search for a student above to record their driving exam results. Each vehicle class can have its own result entry.
+//                   </p>
+//                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
+//                     <Search className="w-4 h-4 text-slate-500" />
+//                     <span className="text-sm text-slate-600">Start by searching for a student</span>
+//                   </div>
+//                 </div>
+//               </div>
+//               <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
+//             </div>
+//           )}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+
+
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -14,7 +658,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Car, Search, User, ChevronRight, CheckCircle, Clock, AlertCircle } from "lucide-react";
 
 type VehicleRow = {
   vehicleClassId: number;
@@ -118,9 +761,14 @@ export default function DrivingExamResultsPage() {
     setQuery("");
     setResults([]);
     setVehicleRows([]);
+    setGlobalExamDate("");
   }
 
-  function updateRow(vehicleClassId: number, field: keyof VehicleRow, value: any) {
+  function updateRow(
+    vehicleClassId: number,
+    field: keyof VehicleRow,
+    value: any
+  ) {
     setVehicleRows((prev) =>
       prev.map((r) =>
         r.vehicleClassId === vehicleClassId ? { ...r, [field]: value } : r
@@ -188,452 +836,716 @@ export default function DrivingExamResultsPage() {
     }
   }
 
+  const getResultColor = (result: string) => {
+    switch (result) {
+      case "PASS":
+        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      case "FAIL":
+        return "bg-rose-500/20 text-rose-400 border-rose-500/30";
+      case "ABSENT":
+        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      default:
+        return "bg-slate-500/20 text-slate-400 border-slate-500/30";
+    }
+  };
+
   return (
-    <div className="min-h-screen p-6 md:p-10">
-      {/* Luxury Background Pattern */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-white"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(37,99,235,0.03)_0%,transparent_50%)]"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(139,92,246,0.02)_0%,transparent_50%)]"></div>
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+    <div className="min-h-screen bg-[#0A0F1E]">
+      {/* Professional Dark Background with Subtle Pattern */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_#1E293B_0%,_#0A0F1E_100%)]"></div>
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48cGF0aCBkPSJNMjAgMjBoMjB2MjBIMjB6TTAgMGgyMHYyMEgweiIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAyKSIvPjwvc3ZnPg==')] opacity-30"></div>
+        <div className="absolute top-0 -left-40 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative max-w-6xl mx-auto">
-        {/* Luxury Header */}
-        <div className="mb-10 md:mb-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className="w-3 h-12 bg-gradient-to-b from-blue-600 to-blue-500 rounded-full"></div>
-                  <div className="absolute -inset-1 bg-blue-100/30 blur-sm rounded-full"></div>
+      <div className="relative max-w-7xl mx-auto p-6 lg:p-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <div className="w-14 h-14 bg-gradient-to-tr from-indigo-500 to-blue-500 rounded-xl shadow-lg shadow-indigo-500/20 flex items-center justify-center">
+                  <svg
+                    className="w-7 h-7 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M8.25 18.75a1.5 1.5 0 01-1.5-1.5V9.75a1.5 1.5 0 011.5-1.5h7.5a1.5 1.5 0 011.5 1.5v7.5a1.5 1.5 0 01-1.5 1.5h-7.5z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M9.75 8.25V6.75a2.25 2.25 0 114.5 0v1.5"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M6 12h12"
+                    />
+                  </svg>
                 </div>
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
-                    Driving Exam Results
-                  </h1>
-                  <p className="text-slate-600 mt-2 font-light">Record and manage driving test outcomes</p>
-                </div>
+                <div className="absolute -inset-1 bg-indigo-500/20 blur-lg rounded-full"></div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-white tracking-tight">
+                  Driving Examination
+                </h1>
+                <p className="text-sm text-slate-400">
+                  Record and manage per-vehicle driving exam results
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl shadow-sm border border-slate-200/80">
-                <div className="relative">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  <div className="absolute -inset-1 bg-emerald-500/20 blur-sm rounded-full"></div>
+
+            <div className="flex items-center space-x-3">
+              <Badge
+                variant="outline"
+                className="border-slate-700 text-slate-300 bg-slate-800/50 px-4 py-2"
+              >
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                  <span>System Online</span>
                 </div>
-                <span className="text-sm font-medium text-slate-700">Exam Entry Mode</span>
-              </div>
+              </Badge>
             </div>
+          </div>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            {[
+              {
+                label: "Vehicle Records",
+                value: vehicleRows.length.toString().padStart(2, "0"),
+                change: selectedStudent ? "Selected student" : "No student",
+                icon: "M8.25 18.75a1.5 1.5 0 01-1.5-1.5V9.75a1.5 1.5 0 011.5-1.5h7.5a1.5 1.5 0 011.5 1.5v7.5a1.5 1.5 0 01-1.5 1.5h-7.5z",
+              },
+              {
+                label: "Selected Vehicles",
+                value: selectedVehicles.length.toString().padStart(2, "0"),
+                change: selectedStudent ? "Classes loaded" : "Waiting",
+                icon: "M3 13.5h18M6.75 16.5h10.5M7.5 7.5h9l2.25 6H5.25l2.25-6z",
+              },
+              {
+                label: "Saved Entries",
+                value: vehicleRows.filter((r) => r.hasSavedRecord).length
+                  .toString()
+                  .padStart(2, "0"),
+                change: "Current loaded data",
+                icon: "M9 12.75 11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
+              },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-5 hover:border-slate-600/50 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-slate-400">{stat.label}</p>
+                    <p className="text-2xl font-semibold text-white mt-1">
+                      {stat.value}
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d={stat.icon}
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex items-center mt-3">
+                  <span className="text-xs text-emerald-400 font-medium">
+                    {stat.change}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="space-y-8">
-          {/* Section 1: Student Search */}
-          <div className="relative">
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-            
-            <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-              {/* Form Header */}
-              <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600"></div>
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-sm">
-                      <Search className="w-4 h-4 text-white" />
+        {/* Main Form Card */}
+        <div className="bg-slate-800/40 backdrop-blur-sm rounded-2xl border border-slate-700/50 overflow-hidden shadow-xl">
+          {/* Form Header */}
+          <div className="px-8 py-6 border-b border-slate-700/50 bg-slate-800/80">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  {[1, 2, 3].map((step, idx) => (
+                    <div key={step} className="flex items-center space-x-2">
+                      <div
+                        className={`flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium ${
+                          step === 1
+                            ? "bg-indigo-500 text-white"
+                            : step === 2 && selectedStudent
+                            ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                            : step === 3 && selectedStudent && vehicleRows.length > 0
+                            ? "bg-indigo-500/20 text-indigo-400 border border-indigo-500/30"
+                            : "bg-slate-700 text-slate-400"
+                        }`}
+                      >
+                        {step}
+                      </div>
+                      {idx < 2 && <div className="w-6 h-px bg-slate-700"></div>}
                     </div>
-                    <div>
-                      <h2 className="text-xl font-semibold text-slate-900">Find Student</h2>
-                      <p className="text-sm text-slate-500">Search by name or NIC number</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span className="text-sm font-medium text-slate-700">Step 1/2</span>
-                  </div>
+                  ))}
+                </div>
+                <span className="text-sm text-slate-400">
+                  Student Selection → Vehicle Results → Confirmation
+                </span>
+              </div>
+
+              <Badge
+                className={
+                  selectedStudent
+                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                    : "bg-slate-700 text-slate-400 border-slate-600"
+                }
+              >
+                {selectedStudent ? "Student Selected" : "No Student Selected"}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Form Content */}
+          <div className="p-8">
+            {/* Student Search Section */}
+            <div className="space-y-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                  <svg
+                    className="w-5 h-5 text-indigo-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-medium text-white">
+                    Student Search
+                  </h2>
+                  <p className="text-sm text-slate-400">
+                    Search by name or NIC to begin
+                  </p>
                 </div>
               </div>
 
-              {/* Search Content */}
-              <div className="p-8 md:p-10">
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <Label className="text-slate-700 font-medium flex items-center gap-1">
-                      Search Student
-                      <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                      <Input
-                        value={query}
-                        onChange={(e) => {
-                          setQuery(e.target.value);
-                          setSelectedStudent(null);
-                        }}
-                        placeholder="Type name or NIC..."
-                        className="w-full pl-12 pr-4 py-3 bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300 shadow-sm"
+              <div className="relative">
+                <Label
+                  htmlFor="search"
+                  className="text-sm font-medium text-slate-300 mb-2 block"
+                >
+                  Search Query <span className="text-rose-400">*</span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="search"
+                    type="text"
+                    placeholder="Enter student name or NIC number..."
+                    className="pl-11 pr-11 h-12 bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl"
+                    value={query}
+                    onChange={(e) => {
+                      setQuery(e.target.value);
+                      setSelectedStudent(null);
+                    }}
+                  />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    <svg
+                      className="w-4 h-4 text-slate-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                       />
-                    </div>
+                    </svg>
                   </div>
-
-                  {/* Search Results */}
-                  {results.length > 0 && (
-                    <div className="relative animate-in fade-in slide-in-from-top-2 duration-200">
-                      <div className="bg-white border border-slate-200 rounded-xl shadow-2xl shadow-slate-900/20 overflow-hidden">
-                        <div className="max-h-80 overflow-y-auto">
-                          {results.map((s) => (
-                            <button
-                              key={s.id}
-                              type="button"
-                              onClick={() => handleSelect(s)}
-                              className="w-full text-left px-6 py-4 hover:bg-blue-50 cursor-pointer border-b border-slate-100 last:border-0 transition-colors duration-200 group active:bg-blue-100"
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-slate-900 group-hover:text-blue-600 transition-colors">
-                                    {s.fullName}
-                                  </div>
-                                  <div className="flex items-center gap-4 text-sm text-slate-500 mt-1">
-                                    <div className="flex items-center gap-1">
-                                      <span>NIC: {s.nic}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <Badge variant="outline" className="bg-slate-50">
-                                    Ref: {s.referenceNo}
-                                  </Badge>
-                                  <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                        <div className="px-6 py-3 bg-slate-50 border-t border-slate-200 text-xs text-slate-500">
-                          {results.length} student{results.length !== 1 ? 's' : ''} found
-                        </div>
-                      </div>
+                  {(searchLoading || bundleLoading) && (
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                      <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                   )}
                 </div>
+
+                {/* Search Results Dropdown */}
+                {results.length > 0 && (
+                  <div className="absolute z-50 mt-2 w-full bg-slate-800 rounded-xl border border-slate-700 shadow-xl overflow-hidden">
+                    <div className="px-4 py-3 bg-slate-800/90 border-b border-slate-700">
+                      <p className="text-sm text-slate-400">
+                        Found{" "}
+                        <span className="text-white font-medium">
+                          {results.length}
+                        </span>{" "}
+                        students
+                      </p>
+                    </div>
+                    <ul className="max-h-80 overflow-y-auto">
+                      {results.map((student) => (
+                        <li
+                          key={student.id}
+                          className="px-4 py-3 hover:bg-slate-700/50 cursor-pointer border-b border-slate-700/50 last:border-0 transition-colors"
+                          onClick={() => handleSelect(student)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                                <span className="text-indigo-400 font-medium text-lg">
+                                  {student.fullName.charAt(0)}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="text-white font-medium">
+                                  {student.fullName}
+                                </p>
+                                <p className="text-sm text-slate-400">
+                                  NIC: {student.nic}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className="border-slate-600 text-slate-300"
+                            >
+                              {student.referenceNo}
+                            </Badge>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Selected Student Card */}
+                {selectedStudent && (
+                  <div className="mt-6 p-5 bg-indigo-500/5 rounded-xl border border-indigo-500/20">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-14 h-14 bg-indigo-500/10 rounded-xl flex items-center justify-center">
+                          <span className="text-indigo-400 font-bold text-2xl">
+                            {selectedStudent.fullName.charAt(0)}
+                          </span>
+                        </div>
+                        <div>
+                          <h3 className="text-white font-semibold text-lg">
+                            {selectedStudent.fullName}
+                          </h3>
+                          <div className="flex flex-wrap items-center gap-4 mt-1">
+                            <span className="text-sm text-slate-400">
+                              NIC: {selectedStudent.nic}
+                            </span>
+                            <span className="text-sm text-slate-400">
+                              Ref: {selectedStudent.referenceNo}
+                            </span>
+                          </div>
+                          {selectedVehicles.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {selectedVehicles.map((vehicle: string, i: number) => (
+                                <Badge
+                                  key={i}
+                                  variant="outline"
+                                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                                >
+                                  {vehicle}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={handleClear}
+                        variant="ghost"
+                        size="sm"
+                        className="text-slate-400 hover:text-white hover:bg-slate-700"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-          </div>
 
-          {/* Section 2: Exam Results Entry */}
-          {selectedStudent && (
-            <div className="relative">
-              <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
-              
-              <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-                {/* Form Header */}
-                <div className="px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white/50 relative">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600"></div>
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center shadow-sm">
-                        <Car className="w-4 h-4 text-white" />
-                      </div>
-                      <div>
-                        <h2 className="text-xl font-semibold text-slate-900">Exam Results Entry</h2>
-                        <p className="text-sm text-slate-500">Record driving test outcomes per vehicle class</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-slate-700">Step 2/2</span>
-                    </div>
+            {/* Exam Details Section */}
+            {selectedStudent && (
+              <div className="mt-8 space-y-8">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-indigo-500/10 rounded-lg flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-indigo-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M9 17.25h6M9 12h6m-7.5 9h9a2.25 2.25 0 002.25-2.25V5.25A2.25 2.25 0 0016.5 3h-9a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-medium text-white">
+                      Examination Details
+                    </h2>
+                    <p className="text-sm text-slate-400">
+                      Enter per-vehicle driving examination information
+                    </p>
                   </div>
                 </div>
 
-                {/* Student Info Bar */}
-                <div className="px-8 py-6 bg-gradient-to-r from-slate-50 to-white border-b border-slate-100">
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center shadow-lg">
-                        <User className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex flex-col md:flex-row md:items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold text-slate-900">{selectedStudent.fullName}</h3>
-                          <div className="flex items-center gap-3">
-                            <Badge className="bg-purple-100 text-purple-800 hover:bg-purple-100 border-0">
-                              Ref: {selectedStudent.referenceNo}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-slate-600">
-                          <span className="flex items-center gap-1">
-                            NIC: {selectedStudent.nic}
-                          </span>
-                        </div>
-                        {/* Vehicle Class Badges */}
-                        <div className="flex flex-wrap gap-2 mt-3">
-                          {selectedVehicles.map((v: string, i: number) => (
-                            <Badge key={i} variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-                              {v}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
+                {/* Global Exam Date */}
+                <div className="p-5 bg-slate-900/40 rounded-xl border border-slate-700/50">
+                  <div className="flex flex-col md:flex-row md:items-end gap-4">
+                    <div className="flex-1 space-y-2">
+                      <Label
+                        htmlFor="globalExamDate"
+                        className="text-sm font-medium text-slate-300"
+                      >
+                        Global Exam Date
+                      </Label>
+                      <Input
+                        id="globalExamDate"
+                        type="date"
+                        className="h-11 bg-slate-900/50 border-slate-700 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl md:max-w-xs"
+                        value={globalExamDate}
+                        onChange={(e) => setGlobalExamDate(e.target.value)}
+                      />
                     </div>
+
                     <Button
-                      variant="outline"
-                      onClick={handleClear}
-                      className="border-slate-300 hover:bg-slate-50 hover:border-slate-400"
+                      disabled={!globalExamDate || savingExamDateOnly}
+                      onClick={async () => {
+                        setSavingExamDateOnly(true);
+                        for (let row of vehicleRows) {
+                          updateRow(row.vehicleClassId, "examDate", globalExamDate);
+                        }
+                        setSavingExamDateOnly(false);
+                        toast.success("Exam date applied to all vehicles");
+                      }}
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 h-11 min-w-[180px] disabled:opacity-50"
                     >
-                      Clear Selection
+                      {savingExamDateOnly ? (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          <span>Applying...</span>
+                        </div>
+                      ) : (
+                        <span>Apply Date to All</span>
+                      )}
                     </Button>
                   </div>
                 </div>
 
-                {/* Exam Results Form */}
-                <div className="p-8 md:p-10">
-                  <div className="space-y-10">
-                    {/* Global Exam Date */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 flex items-center justify-center">
-                            <span className="text-blue-700 font-bold">01</span>
+                {/* Save All */}
+                <div className="flex justify-end">
+                  <Button
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-8 h-11 min-w-[220px] disabled:opacity-50"
+                    disabled={savingAll}
+                    onClick={async () => {
+                      if (!selectedStudent?.id) return;
+                      setSavingAll(true);
+
+                      for (let row of vehicleRows) {
+                        await upsertDrivingExamResult({
+                          applicationId: selectedStudent.id,
+                          vehicleClassId: row.vehicleClassId,
+                          trainedDates: row.trainedDates,
+                          examDate: row.examDate || undefined,
+                          result: row.result,
+                          notes: row.notes,
+                        });
+                      }
+
+                      setSavingAll(false);
+                      toast.success("All vehicle records saved successfully");
+                      setVehicleRows((prev) =>
+                        prev.map((r) => ({ ...r, hasSavedRecord: true }))
+                      );
+                    }}
+                  >
+                    {savingAll ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Saving All...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                        <span>Save All Vehicle Results</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Vehicle Rows */}
+                <div className="space-y-6">
+                  {vehicleRows.map((row) => {
+                    const key = `${selectedStudent.id}-${row.vehicleClassId}`;
+                    const saving = savingKey === key;
+                    const deleting = deletingKey === key;
+
+                    return (
+                      <div
+                        key={row.vehicleClassId}
+                        className="bg-slate-900/40 rounded-2xl border border-slate-700/50 overflow-hidden"
+                      >
+                        {/* Row Header */}
+                        <div className="px-6 py-5 border-b border-slate-700/50 bg-slate-800/60">
+                          <div className="flex items-center justify-between gap-4 flex-wrap">
+                            <div className="flex items-center space-x-4">
+                              <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center">
+                                <svg
+                                  className="w-6 h-6 text-indigo-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1.7}
+                                    d="M3 13.5h18M6.75 16.5h.008v.008H6.75V16.5zm2.25 0h.008v.008H9V16.5zm6 0h.008v.008H15V16.5zm2.25 0h.008v.008h-.008V16.5zM5.25 10.5h13.5l-1.125-3.375A2.25 2.25 0 0015.488 5.5H8.512a2.25 2.25 0 00-2.137 1.625L5.25 10.5zM6 18.75h12A2.25 2.25 0 0020.25 16.5v-1.875A2.25 2.25 0 0018 12.375H6a2.25 2.25 0 00-2.25 2.25V16.5A2.25 2.25 0 006 18.75z"
+                                  />
+                                </svg>
+                              </div>
+                              <div>
+                                <h3 className="text-white font-semibold text-lg">
+                                  {row.vehicleName}
+                                </h3>
+                                <div className="mt-2">
+                                  {row.hasSavedRecord ? (
+                                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                                      Saved Record
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-slate-700 text-slate-300 border-slate-600">
+                                      Not Saved Yet
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <Button
+                                variant="outline"
+                                disabled={deleting}
+                                onClick={() => handleDeleteRow(row)}
+                                className="border-rose-500/30 text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 rounded-xl px-6 h-11 disabled:opacity-50"
+                              >
+                                {deleting ? "Deleting..." : "Delete"}
+                              </Button>
+
+                              <Button
+                                disabled={saving}
+                                onClick={() => handleSaveRow(row)}
+                                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl px-6 h-11 disabled:opacity-50"
+                              >
+                                {saving ? "Saving..." : "Save"}
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <h3 className="text-xl font-semibold text-slate-900">Global Exam Date</h3>
-                          <p className="text-slate-500">Set date once for all vehicles</p>
-                        </div>
-                      </div>
 
-                      <div className="bg-slate-50 rounded-xl border border-slate-200 p-6">
-                        <div className="flex flex-col md:flex-row gap-4 items-end">
-                          <div className="flex-1 space-y-2">
-                            <Label className="text-slate-700 font-medium">Exam Date</Label>
-                            <Input
-                              type="date"
-                              value={globalExamDate}
-                              onChange={(e) => setGlobalExamDate(e.target.value)}
-                              className="bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 h-12 rounded-xl transition-all duration-300 md:max-w-xs"
+                        {/* Row Body */}
+                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="text-sm font-medium text-slate-300">
+                              Training Dates <span className="text-rose-400">*</span>
+                            </Label>
+                            <Textarea
+                              value={row.trainedDates}
+                              onChange={(e) =>
+                                updateRow(
+                                  row.vehicleClassId,
+                                  "trainedDates",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Enter training dates and details..."
+                              className="min-h-[100px] bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl resize-none"
                             />
                           </div>
-                          <Button
-                            disabled={!globalExamDate || savingExamDateOnly}
-                            onClick={async () => {
-                              setSavingExamDateOnly(true);
-                              for (let row of vehicleRows) {
-                                updateRow(row.vehicleClassId, "examDate", globalExamDate);
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-slate-300">
+                              Result
+                            </Label>
+                            <div className="relative">
+                              <select
+                                value={row.result}
+                                onChange={(e) =>
+                                  updateRow(
+                                    row.vehicleClassId,
+                                    "result",
+                                    e.target.value
+                                  )
+                                }
+                                className="w-full h-11 bg-slate-900/50 border border-slate-700 text-white rounded-xl px-4 appearance-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                              >
+                                {resultOptions.map((opt) => (
+                                  <option
+                                    key={opt}
+                                    value={opt}
+                                    className="bg-slate-800"
+                                  >
+                                    {opt}
+                                  </option>
+                                ))}
+                              </select>
+                              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <Badge className={getResultColor(row.result)}>
+                                  {row.result}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-sm font-medium text-slate-300">
+                              Exam Date
+                            </Label>
+                            <Input
+                              type="date"
+                              value={row.examDate}
+                              onChange={(e) =>
+                                updateRow(
+                                  row.vehicleClassId,
+                                  "examDate",
+                                  e.target.value
+                                )
                               }
-                              setSavingExamDateOnly(false);
-                              toast.success("Exam date applied to all vehicles");
-                            }}
-                            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 h-12 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
-                          >
-                            {savingExamDateOnly ? "Applying..." : "Apply Date to All"}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                              className="h-11 bg-slate-900/50 border-slate-700 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl"
+                            />
+                          </div>
 
-                    {/* Save All Button */}
-                    <div className="pt-4">
-                      <Button
-                        className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white font-semibold py-7 rounded-xl text-lg shadow-lg hover:shadow-xl transition-all duration-500 disabled:opacity-50"
-                        disabled={savingAll}
-                        onClick={async () => {
-                          if (!selectedStudent?.id) return;
-                          setSavingAll(true);
-
-                          for (let row of vehicleRows) {
-                            await upsertDrivingExamResult({
-                              applicationId: selectedStudent.id,
-                              vehicleClassId: row.vehicleClassId,
-                              trainedDates: row.trainedDates,
-                              examDate: row.examDate || undefined,
-                              result: row.result,
-                              notes: row.notes,
-                            });
-                          }
-
-                          setSavingAll(false);
-                          toast.success("All vehicle records saved successfully");
-                        }}
-                      >
-                        {savingAll ? (
-                          <span className="flex items-center gap-3">
-                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Saving All Records...
-                          </span>
-                        ) : (
-                          "SAVE ALL VEHICLE RESULTS"
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Vehicle Rows */}
-                    <div className="space-y-8">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 flex items-center justify-center">
-                            <span className="text-emerald-700 font-bold">02</span>
+                          <div className="space-y-2 md:col-span-2">
+                            <Label className="text-sm font-medium text-slate-300">
+                              Notes
+                            </Label>
+                            <Textarea
+                              value={row.notes}
+                              onChange={(e) =>
+                                updateRow(row.vehicleClassId, "notes", e.target.value)
+                              }
+                              placeholder="Additional notes about the exam..."
+                              className="min-h-[90px] bg-slate-900/50 border-slate-700 text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-xl resize-none"
+                            />
                           </div>
                         </div>
-                        <div>
-                          <h3 className="text-xl font-semibold text-slate-900">Vehicle Class Results</h3>
-                          <p className="text-slate-500">Enter results for each vehicle category</p>
-                        </div>
                       </div>
-
-                      {vehicleRows.map((row) => {
-                        const key = `${selectedStudent.id}-${row.vehicleClassId}`;
-                        const saving = savingKey === key;
-                        const deleting = deletingKey === key;
-
-                        return (
-                          <div
-                            key={row.vehicleClassId}
-                            className="bg-gradient-to-r from-blue-50/30 to-purple-50/30 rounded-2xl border border-slate-200 p-6 shadow-md hover:shadow-lg transition-all duration-300"
-                          >
-                            {/* Vehicle Header */}
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-blue-500 flex items-center justify-center shadow-md">
-                                  <Car className="w-5 h-5 text-white" />
-                                </div>
-                                <div>
-                                  <h4 className="text-lg font-semibold text-slate-900">{row.vehicleName}</h4>
-                                  <div className="flex items-center gap-2 mt-1">
-                                    {row.hasSavedRecord ? (
-                                      <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 flex items-center gap-1">
-                                        <CheckCircle className="w-3 h-3" /> Saved
-                                      </Badge>
-                                    ) : (
-                                      <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 flex items-center gap-1">
-                                        <Clock className="w-3 h-3" /> Not Saved
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div className="flex gap-3">
-                                <Button
-                                  variant="destructive"
-                                  disabled={deleting}
-                                  onClick={() => handleDeleteRow(row)}
-                                  className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
-                                >
-                                  {deleting ? "Deleting..." : "Delete"}
-                                </Button>
-                                <Button
-                                  disabled={saving}
-                                  onClick={() => handleSaveRow(row)}
-                                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white px-6 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50"
-                                >
-                                  {saving ? "Saving..." : "Save"}
-                                </Button>
-                              </div>
-                            </div>
-
-                            {/* Vehicle Form Fields */}
-                            <div className="grid gap-6 md:grid-cols-2">
-                              {/* Trained Dates - Full Width */}
-                              <div className="md:col-span-2 space-y-3">
-                                <Label className="text-slate-700 font-medium flex items-center gap-1">
-                                  Training Dates
-                                  <span className="text-red-500">*</span>
-                                </Label>
-                                <Textarea
-                                  value={row.trainedDates}
-                                  onChange={(e) =>
-                                    updateRow(row.vehicleClassId, "trainedDates", e.target.value)
-                                  }
-                                  className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 min-h-[100px] rounded-xl transition-all duration-300"
-                                  placeholder="Enter training dates and details..."
-                                />
-                              </div>
-
-                              {/* Result */}
-                              <div className="space-y-3">
-                                <Label className="text-slate-700 font-medium">Result</Label>
-                                <select
-                                  value={row.result}
-                                  onChange={(e) =>
-                                    updateRow(row.vehicleClassId, "result", e.target.value)
-                                  }
-                                  className="w-full h-12 bg-white border border-slate-300 text-slate-900 rounded-xl px-4 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236B7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-no-repeat bg-[right_1rem_center] bg-[length:1.5em_1.5em]"
-                                >
-                                  {resultOptions.map((opt) => (
-                                    <option key={opt} value={opt} className="bg-white text-slate-900">
-                                      {opt}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-
-                              {/* Exam Date */}
-                              <div className="space-y-3">
-                                <Label className="text-slate-700 font-medium">Exam Date</Label>
-                                <Input
-                                  type="date"
-                                  value={row.examDate}
-                                  onChange={(e) =>
-                                    updateRow(row.vehicleClassId, "examDate", e.target.value)
-                                  }
-                                  className="bg-white border-slate-300 text-slate-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 h-12 rounded-xl transition-all duration-300"
-                                />
-                              </div>
-
-                              {/* Notes - Full Width */}
-                              <div className="md:col-span-2 space-y-3">
-                                <Label className="text-slate-700 font-medium">Notes</Label>
-                                <Textarea
-                                  value={row.notes}
-                                  onChange={(e) =>
-                                    updateRow(row.vehicleClassId, "notes", e.target.value)
-                                  }
-                                  className="bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 min-h-[80px] rounded-xl transition-all duration-300"
-                                  placeholder="Additional notes about the exam..."
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
+                    );
+                  })}
                 </div>
 
-                
-              </div>
-              <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
-            </div>
-          )}
-
-          {/* Empty State - No Student Selected */}
-          {!selectedStudent && (
-            <div className="relative">
-              <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
-              
-              <div className="bg-blue-100/95 backdrop-blur-sm rounded-2xl shadow-2xl shadow-slate-200/50 border border-slate-200/80 overflow-hidden">
-                <div className="p-12 text-center">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-slate-100 to-slate-200 border border-slate-300 flex items-center justify-center mb-6">
-                    <Car className="w-12 h-12 text-slate-400" />
+                {/* Footer Actions */}
+                <div className="flex items-center justify-between pt-6 border-t border-slate-700/50">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-1.5 h-1.5 bg-slate-500 rounded-full"></div>
+                    <p className="text-sm text-slate-400">
+                      Per-vehicle results can be saved individually or all at once
+                    </p>
                   </div>
-                  <h3 className="text-2xl font-semibold text-slate-900 mb-3">No Student Selected</h3>
-                  <p className="text-slate-600 max-w-lg mx-auto mb-8">
-                    Search for a student above to record their driving exam results. Each vehicle class can have its own result entry.
-                  </p>
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg">
-                    <Search className="w-4 h-4 text-slate-500" />
-                    <span className="text-sm text-slate-600">Start by searching for a student</span>
+
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      onClick={handleClear}
+                      variant="outline"
+                      className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl px-6 h-11"
+                    >
+                      Reset
+                    </Button>
                   </div>
                 </div>
               </div>
-              <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-slate-400/20 to-transparent"></div>
-            </div>
-          )}
+            )}
+
+            {/* Empty State */}
+            {!selectedStudent && (
+              <div className="mt-8 text-center py-16">
+                <div className="w-20 h-20 bg-slate-700/50 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                  <svg
+                    className="w-10 h-10 text-slate-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.5}
+                      d="M3 13.5h18M6.75 16.5h.008v.008H6.75V16.5zm2.25 0h.008v.008H9V16.5zm6 0h.008v.008H15V16.5zm2.25 0h.008v.008h-.008V16.5zM5.25 10.5h13.5l-1.125-3.375A2.25 2.25 0 0015.488 5.5H8.512a2.25 2.25 0 00-2.137 1.625L5.25 10.5zM6 18.75h12A2.25 2.25 0 0020.25 16.5v-1.875A2.25 2.25 0 0018 12.375H6a2.25 2.25 0 00-2.25 2.25V16.5A2.25 2.25 0 006 18.75z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">
+                  No Student Selected
+                </h3>
+                <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                  Search for a student above to begin recording driving examination
+                  results for each vehicle class.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-6 text-center">
+          <p className="text-xs text-slate-600">
+            Driving Examination Management System v2.0 • All rights reserved
+          </p>
         </div>
       </div>
     </div>
