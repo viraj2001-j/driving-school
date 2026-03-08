@@ -4,9 +4,11 @@ import DashboardCharts from "@/components/DashboardCharts";
 import LiveClock from "@/components/LiveClock";
 import { unstable_noStore as noStore } from "next/cache";
 
-/* ---------------- Helpers ---------------- */
+/* ---------------- Page Config ---------------- */
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+/* ---------------- Helpers ---------------- */
 
 function formatDate(d: Date) {
   return d.toLocaleDateString("en-GB", {
@@ -27,7 +29,6 @@ function startOfToday() {
   return d;
 }
 
-// ✅ Handles Feb 29 → Feb 28 in non-leap years when adding years
 function addYearsSafe(date: Date, years: number) {
   const d = new Date(date);
   const month = d.getMonth();
@@ -35,7 +36,6 @@ function addYearsSafe(date: Date, years: number) {
 
   d.setFullYear(d.getFullYear() + years);
 
-  // If month changed, it overflowed (e.g., Feb 29 -> Mar 1). Fix to last day of previous month.
   if (d.getMonth() !== month || d.getDate() !== day) {
     d.setDate(0);
   }
@@ -57,8 +57,6 @@ export default async function DashboardPage() {
   noStore();
   const data = await getDashboardData();
 
-  
-
   return (
     <div className="min-h-screen p-6 md:p-10">
       {/* Background */}
@@ -66,12 +64,10 @@ export default async function DashboardPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/60 to-white dark:from-slate-950 dark:via-slate-900 dark:to-slate-950" />
       </div>
 
-      {/* FULL WIDTH CONTENT */}
       <div className="w-full mx-auto space-y-8">
-        {/* ⭐ PREMIUM HEADER */}
+        {/* Header */}
         <div className="mb-10 md:mb-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
-            {/* LEFT SIDE TEXT */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -90,7 +86,6 @@ export default async function DashboardPage() {
               </div>
             </div>
 
-            {/* RIGHT SIDE */}
             <div className="flex items-center gap-4">
               <div className="hidden md:flex items-center gap-3 px-5 py-3 bg-white/90 backdrop-blur-sm rounded-xl border border-slate-300 shadow-sm">
                 <div className="relative">
@@ -107,7 +102,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* 🔵 BLUE OUTER BACKGROUND SECTION */}
+        {/* Main Section */}
         <div className="bg-blue-100/95 rounded-3xl p-8 border border-blue-100 shadow-inner space-y-10">
           {/* KPI Cards – Counts */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -140,12 +135,10 @@ export default async function DashboardPage() {
               note="Students who passed driving exam"
               accent="indigo"
             />
-
-            {/* ✅ NEW KPI */}
             <KpiCard
-              title="18th Birthday Completed"
+              title="Turned 18 in Last 7 Days"
               value={data.eligible18Count ?? 0}
-              note="DOB + 18 years is completed"
+              note="Students who turned 18 within last 7 days"
               accent="emerald"
             />
           </div>
@@ -175,6 +168,16 @@ export default async function DashboardPage() {
             />
           </div>
 
+          {/* NEW KPI – Written + 3 Months */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <KpiCard
+              title="3 Months After Written Exam"
+              value={data.writtenThreeMonthCount ?? 0}
+              note="Students whose written exam completed 3 months within last 7 days"
+              accent="indigo"
+            />
+          </div>
+
           {/* Upcoming Exams */}
           <div className="grid gap-8 lg:grid-cols-2">
             <ExamList
@@ -189,10 +192,13 @@ export default async function DashboardPage() {
             />
           </div>
 
-          {/* ✅ NEW: 18th Birthday Completed Students */}
+          {/* Recently Turned 18 */}
           <Eligible18List items={data.eligible18Students ?? []} />
 
-          {/* Charts Section */}
+          {/* Written Exam + 3 Months */}
+          <WrittenThreeMonthList items={data.writtenThreeMonthStudents ?? []} />
+
+          {/* Charts */}
           <DashboardCharts
             paymentStats={{
               paidCount: data.paidCount,
@@ -304,7 +310,9 @@ function ExamList({
                   </div>
 
                   <div className="text-right">
-                    <p className="text-sm font-semibold text-slate-900">{date}</p>
+                    <p className="text-sm font-semibold text-slate-900">
+                      {date}
+                    </p>
                     <p className="text-xs text-slate-500">{time}</p>
                   </div>
                 </div>
@@ -325,21 +333,21 @@ function Eligible18List({ items }: { items: any[] }) {
       <div className="px-6 py-5 border-b border-slate-200 bg-white">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-slate-900">
-            18th Birthday Completed Students
+            Recently Turned 18
           </h3>
           <span className="text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700">
             DOB + 18 Years
           </span>
         </div>
         <p className="text-sm text-slate-500 mt-1">
-          Shows students whose 18th birthday date is completed
+          Shows students whose 18th birthday was within the last 7 days
         </p>
       </div>
 
       <div className="p-6 space-y-3">
         {items.length === 0 ? (
           <div className="p-6 text-center rounded-xl border border-slate-200 bg-white text-slate-500 italic">
-            No 18+ completed students yet
+            No students found in this 7-day window
           </div>
         ) : (
           items.map((s: any) => {
@@ -376,16 +384,128 @@ function Eligible18List({ items }: { items: any[] }) {
                         {birthday18.getFullYear()}
                       </span>
                     </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      Phone:{" "}
+                      <span className="font-medium text-slate-700">
+                        {s.phone1 || "-"}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1 break-all">
+                      Email:{" "}
+                      <span className="font-medium text-slate-700">
+                        {s.email || "-"}
+                      </span>
+                    </p>
                   </div>
 
-                  <span
-                    className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                      isCompleted
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-amber-50 text-amber-700 border-amber-200"
-                    }`}
-                  >
-                    {isCompleted ? "18 Completed" : "Not Yet"}
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200">
+                    {isCompleted ? "Within 7 Days" : "Not Yet"}
+                  </span>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+function WrittenThreeMonthList({ items }: { items: any[] }) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white shadow-md overflow-hidden">
+      <div className="px-6 py-5 border-b border-slate-200 bg-white">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-slate-900">
+            3 Months Completed from Written Exam
+          </h3>
+          <span className="text-xs font-semibold px-3 py-1 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700">
+            Written + 3 Months
+          </span>
+        </div>
+        <p className="text-sm text-slate-500 mt-1">
+          Shows students whose written exam completed 3 months within the last 7
+          days
+        </p>
+      </div>
+
+      <div className="p-6 space-y-3">
+        {items.length === 0 ? (
+          <div className="p-6 text-center rounded-xl border border-slate-200 bg-white text-slate-500 italic">
+            No students found for this 3-month window
+          </div>
+        ) : (
+          items.map((w: any) => {
+            const examDate = new Date(w.examDate);
+            const completedDate = new Date(w.completedDate);
+
+            return (
+              <div
+                key={w.id}
+                className="p-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 transition"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">
+                      {w.application?.referenceNo} • {w.application?.fullName}
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      Written Exam Date:{" "}
+                      <span className="font-medium text-slate-700">
+                        {examDate.toLocaleDateString("en-GB")}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      3 Months Completed:{" "}
+                      <span className="font-medium text-slate-700">
+                        {completedDate.toLocaleDateString("en-GB")}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      Attempt:{" "}
+                      <span className="font-medium text-slate-700">
+                        {w.attemptNo}
+                      </span>
+                      {w.barCode ? (
+                        <>
+                          {" "}
+                          • Barcode:{" "}
+                          <span className="font-medium text-slate-700">
+                            {w.barCode}
+                          </span>
+                        </>
+                      ) : null}
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      Phone:{" "}
+                      <span className="font-medium text-slate-700">
+                        {w.application?.phone1 || "-"}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1 break-all">
+                      Email:{" "}
+                      <span className="font-medium text-slate-700">
+                        {w.application?.email || "-"}
+                      </span>
+                    </p>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      Result:{" "}
+                      <span className="font-medium text-slate-700">
+                        {w.result}
+                      </span>
+                    </p>
+                  </div>
+
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">
+                    Within 7 Days
                   </span>
                 </div>
               </div>

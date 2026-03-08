@@ -9,37 +9,118 @@ function startOfToday() {
   return d;
 }
 
-function addYears(d: Date, years: number) {
-  const x = new Date(d);
-  x.setFullYear(x.getFullYear() + years);
-  return x;
+function addYearsSafe(date: Date, years: number) {
+  const d = new Date(date);
+  const month = d.getMonth();
+  const day = d.getDate();
+
+  d.setFullYear(d.getFullYear() + years);
+
+  if (d.getMonth() !== month || d.getDate() !== day) {
+    d.setDate(0);
+  }
+
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addDays(date: Date, days: number) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function addMonthsSafe(date: Date, months: number) {
+  const d = new Date(date);
+  const originalDate = d.getDate();
+
+  d.setMonth(d.getMonth() + months);
+
+  if (d.getDate() !== originalDate) {
+    d.setDate(0);
+  }
+
+  d.setHours(0, 0, 0, 0);
+  return d;
 }
 
 export async function getDashboardData() {
   noStore();
 
   const today = startOfToday();
-
-  const dobCutoff18 = addYears(today, -18);
+  const sevenDaysAgo = addDays(today, -7);
 
   const totalStudents = await prisma.studentApplication.count();
 
-  const eligible18Count = await prisma.studentApplication.count({
-    where: { dob: { lte: dobCutoff18 } },
-  });
-
-  const eligible18Students = await prisma.studentApplication.findMany({
-    where: { dob: { lte: dobCutoff18 } },
-    orderBy: { createdAt: "desc" },
-    take: 12,
+  const allStudentsFor18Window = await prisma.studentApplication.findMany({
     select: {
       id: true,
       referenceNo: true,
       fullName: true,
       dob: true,
+      email: true,
+      phone1: true,
       canDriveVehicles: true,
+      createdAt: true,
     },
   });
+
+  const eligible18Students = allStudentsFor18Window
+    .map((s) => {
+      const birthday18 = addYearsSafe(new Date(s.dob), 18);
+      return {
+        ...s,
+        birthday18,
+      };
+    })
+    .filter((s) => s.birthday18 >= sevenDaysAgo && s.birthday18 <= today)
+    .sort((a, b) => b.birthday18.getTime() - a.birthday18.getTime())
+    .slice(0, 12);
+
+  const eligible18Count = eligible18Students.length;
+
+  // NEW: 3 months completed from written exam date, show for 7 days only, exclude FAIL
+  const writtenExamStudents = await prisma.writtenExam.findMany({
+    where: {
+      result: {
+        not: "FAIL",
+      },
+    },
+    orderBy: {
+      examDate: "desc",
+    },
+    select: {
+      id: true,
+      examDate: true,
+      result: true,
+      attemptNo: true,
+      barCode: true,
+      application: {
+        select: {
+          id: true,
+          referenceNo: true,
+          fullName: true,
+          email: true,
+          phone1: true,
+        },
+      },
+    },
+  });
+
+  const writtenThreeMonthStudents = writtenExamStudents
+    .map((w) => {
+      const completedDate = addMonthsSafe(new Date(w.examDate), 3);
+      return {
+        ...w,
+        completedDate,
+      };
+    })
+    .filter((w) => w.completedDate >= sevenDaysAgo && w.completedDate <= today)
+    .sort((a, b) => b.completedDate.getTime() - a.completedDate.getTime())
+    .slice(0, 12);
+
+  const writtenThreeMonthCount = writtenThreeMonthStudents.length;
 
   const paidCount = await prisma.paymentInfo.count({ where: { status: "PAID" } });
   const pendingCount = await prisma.paymentInfo.count({ where: { status: "PENDING" } });
@@ -133,5 +214,9 @@ export async function getDashboardData() {
     upcomingDriving,
     eligible18Count,
     eligible18Students,
+
+    // NEW
+    writtenThreeMonthCount,
+    writtenThreeMonthStudents,
   };
 }
