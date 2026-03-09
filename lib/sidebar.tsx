@@ -166,9 +166,9 @@ const Sidebar = () => {
 
                   <div className="flex-1 min-w-0">
                     {/* Name */}
-                    <p className="text-sm font-semibold text-gray-900 truncate">
+                    {/* <p className="text-sm font-semibold text-gray-900 truncate">
                       {user?.name ?? "Loading user..."}
-                    </p>
+                    </p> */}
 
                     {/* Role */}
                     <p className="text-xs text-gray-500 font-medium mt-0.5 truncate">
