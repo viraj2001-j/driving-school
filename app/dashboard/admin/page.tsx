@@ -675,12 +675,12 @@ export default async function DashboardPage() {
           {/* KPI Cards – Money Totals */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <KpiCard
-              title="Total Paid Amount"
-              value={data.paidTotal}
-              note="Sum of paid fees"
-              accent="emerald"
-              isMoney
-            />
+  title="Total Paid Amount"
+  value={data.paidTotal}
+  note="Total collected amount"
+  accent="emerald"
+  isMoney
+/>
             <KpiCard
               title="Pending Balance Total"
               value={data.pendingBalanceTotal}
@@ -688,13 +688,21 @@ export default async function DashboardPage() {
               accent="rose"
               isMoney
             />
-            <KpiCard
+            {/* <KpiCard
               title="Partial Balance Total"
               value={data.partialBalanceTotal}
               note="Total balance for PARTIAL"
               accent="amber"
               isMoney
-            />
+            /> */}
+
+            <KpiCard
+  title="Total Due Amount"
+  value={data.totalToPay}
+  note="Pending + partial remaining balance"
+  accent="amber"
+  isMoney
+/>
           </div>
 
           {/* NEW KPI – Written + 3 Months */}
