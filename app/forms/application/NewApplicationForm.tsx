@@ -840,7 +840,6 @@ export default function NewApplicationForm({ vehicleClasses }: { vehicleClasses:
                           <Input
                             name="advanceFee"
                             type="number"
-                            required
                             className="bg-slate-900/50 border-slate-700 text-white pl-16 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 h-12 rounded-xl transition-all duration-300"
                             placeholder="0.00"
                           />
