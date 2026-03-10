@@ -96,16 +96,22 @@ const Sidebar = () => {
             isCollapsed ? "justify-center" : "px-8"
           }`}>
             <div className="flex items-center gap-3 mt-8">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-700 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
+              {/* <div className="w-10 h-10 bg-gradient-to-br from-indigo-700 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="font-bold text-white text-xl">RDS</span>
-              </div>
+              </div> */}
+
+                      <img
+          src="/RLOGO.jpeg"
+          alt="VRJ Logo"
+          className="inline-block w-15 h-15 ml-1 transition-transform duration-300 rounded-3xl hover:scale-110"
+        />
               {!isCollapsed && (
-                <div className="flex flex-col">
-                  <span className="text-xl font-bold tracking-tight text-gray-900">
-                    Randika<span className="text-indigo-600">DrivingSChool</span>
-                  </span>
-                  <span className="text-xs text-gray-500 font-medium">Admin Portal</span>
-                </div>
+               <div className="flex flex-col text-center">
+  <span className="text-L font-bold tracking-tight text-gray-900">
+    Randika<span className="text-indigo-600"><br />DrivingSChool</span>
+  </span>
+  {/* <span className="text-xs text-white font-medium">{user?.name}</span> */}
+</div>
               )}
             </div>
           </div>
