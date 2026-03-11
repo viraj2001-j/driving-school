@@ -1883,86 +1883,53 @@ export default function ViewStudentsPage() {
 
                     {/* Medical */}
                     <SectionCard
-                      icon={<Stethoscope className="w-4 h-4 text-indigo-400" />}
-                      title="Medical Appointment"
-                    >
-                      <div className="space-y-4">
-                        {/* <InfoGrid
-                          items={[
-                            {
-                              label: "Date",
-                              value: new Date(selected.medicalDate).toLocaleDateString(),
-                            },
-                            {
-                              label: "Time",
-                              value: new Date(selected.medicalTime).toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              }),
-                            },
-                          ]}
-                        /> */}
+  icon={<Stethoscope className="w-4 h-4 text-indigo-400" />}
+  title="Medical Appointment"
+>
+  <div className="space-y-4">
+    <InfoGrid
+      items={[
+        {
+          label: "Date",
+          value: selected.medicalDate
+            ? formatUTCDateOnly(selected.medicalDate)
+            : "Not set",
+        },
+        {
+          label: "Time",
+          value: selected.medicalTime
+            ? formatUTCTimeOnly(selected.medicalTime)
+            : "Not set",
+        },
+      ]}
+    />
 
-
-                        {/* <InfoGrid
-  items={[
-    {
-      label: "Date",
-      value: formatUTCDateOnly(selected.medicalDate),
-    },
-    {
-      label: "Time",
-      value: formatUTCTimeOnly(selected.medicalTime),
-    },
-  ]}
-/> */}
-
-
-<InfoGrid
-  items={[
-    {
-      label: "Date",
-      value: selected.medicalDate
-        ? formatUTCDateOnly(selected.medicalDate)
-        : "Not set",
-    },
-    {
-      label: "Time",
-      value: selected.medicalTime
-        ? formatUTCTimeOnly(selected.medicalTime)
-        : "Not set",
-    },
-  ]}
-/>
-
-                        <InfoBlock label="Status">
-                          <div
-                            className={`p-3 rounded-lg border flex items-center gap-3 ${
-                              selected.medicalStatus === "COMPLETED"
-                                ? "bg-emerald-500/10 border-emerald-500/20"
-                                : "bg-amber-500/10 border-amber-500/20"
-                            }`}
-                          >
-                            {selected.medicalStatus === "COMPLETED" ? (
-                              <CheckCircle className="w-5 h-5 text-emerald-400" />
-                            ) : (
-                              <Clock className="w-5 h-5 text-amber-400" />
-                            )}
-                            <span
-                              className={`font-medium ${
-                                selected.medicalStatus === "COMPLETED"
-                                  ? "text-emerald-400"
-                                  : "text-amber-400"
-                              }`}
-                            >
-                              {selected.medicalStatus}
-                            </span>
-                          </div>
-                        </InfoBlock>
-                      </div>
-                    </SectionCard>
-
+    <InfoBlock label="Status">
+      <div
+        className={`p-3 rounded-lg border flex items-center gap-3 ${
+          selected.medicalStatus === "COMPLETED"
+            ? "bg-emerald-500/10 border-emerald-500/20"
+            : "bg-amber-500/10 border-amber-500/20"
+        }`}
+      >
+        {selected.medicalStatus === "COMPLETED" ? (
+          <CheckCircle className="w-5 h-5 text-emerald-400" />
+        ) : (
+          <Clock className="w-5 h-5 text-amber-400" />
+        )}
+        <span
+          className={`font-medium ${
+            selected.medicalStatus === "COMPLETED"
+              ? "text-emerald-400"
+              : "text-amber-400"
+          }`}
+        >
+          {selected.medicalStatus}
+        </span>
+      </div>
+    </InfoBlock>
+  </div>
+</SectionCard>
                     {/* Exam Attempts */}
                     <SectionCard
                       icon={<FileText className="w-4 h-4 text-indigo-400" />}
