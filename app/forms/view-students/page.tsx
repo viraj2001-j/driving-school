@@ -1377,6 +1377,32 @@ function toDateSafe(v?: string | Date | null) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+function formatUTCDateOnly(v?: string | Date | null) {
+  if (!v) return "Not set";
+  const d = typeof v === "string" ? new Date(v) : v;
+  if (isNaN(d.getTime())) return "Not set";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(d);
+}
+
+function formatUTCTimeOnly(v?: string | Date | null) {
+  if (!v) return "Not set";
+  const d = typeof v === "string" ? new Date(v) : v;
+  if (isNaN(d.getTime())) return "Not set";
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "UTC",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(d);
+}
+
 function takeUntilFirstPass(list: ExamAttemptRow[]) {
   const sorted = [...list].sort((a, b) => a.attemptNo - b.attemptNo);
   const output: ExamAttemptRow[] = [];
@@ -1861,7 +1887,7 @@ export default function ViewStudentsPage() {
                       title="Medical Appointment"
                     >
                       <div className="space-y-4">
-                        <InfoGrid
+                        {/* <InfoGrid
                           items={[
                             {
                               label: "Date",
@@ -1876,7 +1902,39 @@ export default function ViewStudentsPage() {
                               }),
                             },
                           ]}
-                        />
+                        /> */}
+
+
+                        {/* <InfoGrid
+  items={[
+    {
+      label: "Date",
+      value: formatUTCDateOnly(selected.medicalDate),
+    },
+    {
+      label: "Time",
+      value: formatUTCTimeOnly(selected.medicalTime),
+    },
+  ]}
+/> */}
+
+
+<InfoGrid
+  items={[
+    {
+      label: "Date",
+      value: selected.medicalDate
+        ? formatUTCDateOnly(selected.medicalDate)
+        : "Not set",
+    },
+    {
+      label: "Time",
+      value: selected.medicalTime
+        ? formatUTCTimeOnly(selected.medicalTime)
+        : "Not set",
+    },
+  ]}
+/>
 
                         <InfoBlock label="Status">
                           <div
